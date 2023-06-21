@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import struct
-from scipy.fft import fft, fftfreq, ifftn
+from scipy.fft import ifftn, fftfreq, fftshift
+import math
 
 # info from parameters.dat file:
 left_boundary_x =   -3.1415
@@ -134,8 +135,9 @@ for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
     u_center.append(ans[4])
     v_center.append(ans[5])
     w_center.append(ans[6])
-    print("end " + str(i) + " time itteration")
+    print("end reading " + str(i) + " time itteration")
 
+# summary arrays with primitive variables for further processing
 x = np.array(x)
 y = np.array(y)
 z = np.array(z)
@@ -171,25 +173,79 @@ def coordinates_to_index(x_coordinate, y_coordinate, z_coordinate):
     x_index = int((x_coordinate - left_boundary_x) / dx)
     return z_index + y_index + x_index
 
-print("zero: ")
-print(u_center[0][int(cells_number_z/2)][0:5][0:5])
-print(v_center[0][int(cells_number_z/2)][0:5][0:5])
-print(w_center[0][int(cells_number_z/2)][0:5][0:5])
-print("one: ")
-print(u_center[1][int(cells_number_z/2)][0:5][0:5])
-print(v_center[1][int(cells_number_z/2)][0:5][0:5])
-print(w_center[1][int(cells_number_z/2)][0:5][0:5])
-print("two: ")
-print(u_center[2][int(cells_number_z/2)][0:5][0:5])
-print(v_center[2][int(cells_number_z/2)][0:5][0:5])
-print(w_center[2][int(cells_number_z/2)][0:5][0:5])
+# find the energy spectrum at the choosen moment of time
+# E(q) = summ(Vk^2) / (2*pi)^3, if |k - q| <= 1/4;
+# where q = sqrt(q1*q1 + q2*q2 + q3*q3), k = sqrt(kx*kx + ky*ky + kz*kz)
+# Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed; 
+# q - vector of initial conditions
+def modulus_of_vector(vec, l):
+    sqr = 0.0
+    for i in range(0, l):
+        sqr += vec[i] * vec[i]
+    return math.sqrt(sqr)
 
-after_f = ifftn(u_center[2])
-print(len(after_f[0][0]))
-print(after_f[0:3][0:3][0:3])
-plt.imshow(np.real(after_f[0:-1][0:-1][40]))
-plt.grid()
-plt.show()
+def sqr_of_vector(vec, l):
+    sqr = 0.0
+    for i in range(0, l):
+        sqr += vec[i] * vec[i]
+    return sqr
+
+# spectrum of energy depend on vector q (E(q))
+max_fr_deviation = 0.25     # constant in this calculation
+def find_energy_spectrum(u, v, w, size_z, size_y, size_x, q, freq_z, freq_y, freq_x):
+    E = 0.0
+    for ind_z in range(0, size_z):
+        for ind_y in range(0, size_y):
+            for ind_x in range(0, size_x):
+                k = modulus_of_vector([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]], 3)
+                if (abs(k - q) <= max_fr_deviation):
+                    E += sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+
+    return E / (8.0 * math.pi * math.pi * math.pi)
+
+# find full kinetic energy in part of volume
+def find_full_energy(u, v, w, size_z, size_y, size_x):
+    E = 0.0
+    for ind_z in range(0, size_z):
+        for ind_y in range(0, size_y):
+            for ind_x in range(0, size_x):
+                E += sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+
+    return E / (16.0 * math.pi * math.pi * math.pi)
+
+# calculation of frequency arrays along coordinate axes
+kx = fftshift(fftfreq(cells_number_x, dx))
+ky = fftshift(fftfreq(cells_number_y, dy))
+kz = fftshift(fftfreq(cells_number_z, dz))
+delta_fr = (kx[1] - kx[0]) / 2.0
+kx += delta_fr
+delta_fr = (ky[1] - ky[0]) / 2.0
+ky += delta_fr
+delta_fr = (kz[1] - kz[0]) / 2.0
+kz += delta_fr
+# cycle according to the time we are interested in
+for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
+    # fourier image of velocity components
+    fourier_u = np.real(ifftn(u_center[i]))
+    fourier_v = np.real(ifftn(v_center[i]))
+    fourier_w = np.real(ifftn(w_center[i]))
+
+    # find maximum of E(q):
+    E_q_max = 0.0
+    q_max = 0.0
+    amplitude_freq = max(max(kz), max(ky), max(kx))
+
+    for freq in np.linspace(-1.0*amplitude_freq - max_fr_deviation, amplitude_freq + max_fr_deviation, 50):
+        E_ = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x, freq, kz, ky, kx)
+        if E_ > E_q_max:
+            E_q_max = E_
+            q_max = freq
+        # print("frequency " + str(freq) + " with energy " + str(E_))
+
+    print("time moment: " + str(i*time_step))
+    print("full kinetic energy = ")
+    print(find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x))
+    print("maximum spectrum of energy = " + str(E_q_max) + " in frequency = " + str(q_max))
 
 """ picture = []
 for i in range(0, 4):
