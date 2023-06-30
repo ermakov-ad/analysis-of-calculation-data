@@ -121,7 +121,7 @@ v_center = []
 w_center = []
 # chose time interval
 start_time = 0.0
-end_time = 0.002
+end_time = 0.003
 
 print(int(start_time / time_step))
 print(int(end_time / time_step + 1))
@@ -192,16 +192,23 @@ def sqr_of_vector(vec, l):
 
 # spectrum of energy depend on vector q (E(q))
 max_fr_deviation = 0.25     # constant in this calculation
-def find_energy_spectrum(u, v, w, size_z, size_y, size_x, q, freq_z, freq_y, freq_x):
-    E = 0.0
+def find_energy_spectrum(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z, freq_y, freq_x, amplitude):
+    spectrum = np.zeros(count_of_cells)
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
                 k = modulus_of_vector([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]], 3)
-                if (abs(k - q) <= max_fr_deviation):
-                    E += sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+                i = int((k + max_fr_deviation) * count_of_cells / amplitude)
+                E = sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+                if (abs(k - i * amplitude / count_of_cells) >= max_fr_deviation):
+                    i -= 1
+                if (i >= count_of_cells):
+                    i = count_of_cells - 1
+                while (abs(k - i * amplitude / count_of_cells) < max_fr_deviation):
+                    spectrum[i] += E
+                    i -= 1
 
-    return E / (8.0 * math.pi * math.pi * math.pi)
+    return spectrum / (8.0 * math.pi * math.pi * math.pi)
 
 # find full kinetic energy in part of volume
 def find_full_energy(u, v, w, size_z, size_y, size_x):
@@ -223,6 +230,8 @@ delta_fr = (ky[1] - ky[0]) / 2.0
 ky += delta_fr
 delta_fr = (kz[1] - kz[0]) / 2.0
 kz += delta_fr
+
+energy_spectrum = []
 # cycle according to the time we are interested in
 for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
     # fourier image of velocity components
@@ -230,23 +239,22 @@ for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
     fourier_v = np.real(ifftn(v_center[i]))
     fourier_w = np.real(ifftn(w_center[i]))
 
-    # find maximum of E(q):
-    E_q_max = 0.0
-    q_max = 0.0
+    # find E(q):
     amplitude_freq = max(max(kz), max(ky), max(kx))
-
-    for freq in np.linspace(-1.0*amplitude_freq - max_fr_deviation, amplitude_freq + max_fr_deviation, 50):
-        E_ = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x, freq, kz, ky, kx)
-        if E_ > E_q_max:
-            E_q_max = E_
-            q_max = freq
-        # print("frequency " + str(freq) + " with energy " + str(E_))
+    count_of_fr_points = 50
+    
+    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x, count_of_fr_points, kz, ky, kx, amplitude_freq)
+        
+    energy_spectrum.append(E_i)
+    max_energy = np.max(E_i)
+    q_max = np.argmax(E_i) * amplitude_freq / count_of_fr_points
 
     print("time moment: " + str(i*time_step))
     print("full kinetic energy = ")
     print(find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x))
-    print("maximum spectrum of energy = " + str(E_q_max) + " in frequency = " + str(q_max))
+    print("maximum spectrum of energy = " + str(max_energy) + " in frequency = " + str(q_max))
 
+# draw pressure
 """ picture = []
 for i in range(0, 4):
     picture.append(np.empty([cells_number_x, cells_number_y]))
@@ -272,3 +280,22 @@ plt.subplot(2, 2, 4)
 plt.imshow(picture[3])
 
 plt.show() """
+
+# draw energy spectrum
+energy_spectrum = np.array(energy_spectrum)
+freq_coord = np.linspace(0, amplitude_freq + max_fr_deviation, 50)
+fig = plt.figure()
+
+plt.subplot(2, 2, 1)
+plt.plot(freq_coord, energy_spectrum[0])
+
+plt.subplot(2, 2, 2)
+plt.plot(freq_coord, energy_spectrum[1])
+
+plt.subplot(2, 2, 3)
+plt.plot(freq_coord, energy_spectrum[2])
+
+plt.subplot(2, 2, 4)
+plt.plot(freq_coord, energy_spectrum[3])
+
+plt.show()
