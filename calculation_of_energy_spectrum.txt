@@ -1,12 +1,16 @@
 time moment: 0.0
-full kinetic energy =
+full kinetic energy = 
 2.474807108344193e-08
-maximum spectrum of energy = 7.929827905536762e-12 in frequency = 11.10285529140831
+maximum spectrum of energy = 7.794530715836941e-12 in frequency = 10.795798185580137
 time moment: 0.001
-full kinetic energy =
+full kinetic energy = 
 0.0061934744884737805
-maximum spectrum of energy = 0.0001752105750310475 in frequency = 32.00234760464747
+maximum spectrum of energy = 5.327482288630956e-05 in frequency = 31.11730065255452
 time moment: 0.002
-full kinetic energy =
+full kinetic energy = 
 0.003279940824653557
-maximum spectrum of energy = 0.00012407123912676034 in frequency = 32.00234760464747
+maximum spectrum of energy = 3.340208207796834e-05 in frequency = 31.11730065255452
+time moment: 0.003
+full kinetic energy = 
+0.000796308101751963
+maximum spectrum of energy = 1.4155624174890358e-05 in frequency = 31.11730065255452
