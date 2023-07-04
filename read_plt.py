@@ -30,15 +30,18 @@ def construct_file_path(n):
 
 # return: 
 # x, y, z = np.array[z][y][x]; size = (cells_z + 1)*(cells_y + 1)*(cells_x + 1)
-# u, v, w = np.array[z][y][x]; size = cells_z * cells_y * cells_x
+# p, u, v, w = np.array[z][y][x]; size = cells_z * cells_y * cells_x
 def get_data_from_file(file_number):
     file = open(construct_file_path(file_number), 'rb')
     # skip header
     header = file.read(284)
-    #print("header text:")
-    #print(header)
+    # print("header text:")
+    # print(header)
     integers = []
     for i in range(0, 28, 1):
+        integers.append(int(struct.unpack('<i', file.read(4))[0]))
+    # one last int, which not exists in first files
+    if integers[0] != 0:
         integers.append(int(struct.unpack('<i', file.read(4))[0]))
     #print("system information from header: ")
     #print(integers)
@@ -106,8 +109,10 @@ def get_data_from_file(file_number):
                 value = file.read(8)
                 w[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
 
-    if len(file.read()) > 0:
-        print("remained " + str(len(file.read())) + " bytes in the end of the file")
+    mistake = file.read()
+    if len(mistake) > 0:
+        print("remained " + str(len(mistake)) + " bytes in the end of the file")
+        print(mistake)
         print("something doesn't work")
     file.close()
     return x, y, z, p, u, v, w
@@ -120,8 +125,10 @@ u_center = []
 v_center = []
 w_center = []
 # chose time interval
-start_time = 0.0
-end_time = 0.003
+# start_time = 0.0
+# end_time = 0.003
+start_time = 0.231
+end_time = 0.234
 
 print(int(start_time / time_step))
 print(int(end_time / time_step + 1))
@@ -233,7 +240,7 @@ kz += delta_fr
 
 energy_spectrum = []
 # cycle according to the time we are interested in
-for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
+for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1):
     # fourier image of velocity components
     fourier_u = np.real(ifftn(u_center[i]))
     fourier_v = np.real(ifftn(v_center[i]))
@@ -249,37 +256,27 @@ for i in range(int(start_time / time_step), int(end_time / time_step + 1), 1):
     max_energy = np.max(E_i)
     q_max = np.argmax(E_i) * amplitude_freq / count_of_fr_points
 
-    print("time moment: " + str(i*time_step))
+    print("time moment: " + str((i + int(start_time / time_step)) * time_step))
     print("full kinetic energy = ")
     print(find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x))
     print("maximum spectrum of energy = " + str(max_energy) + " in frequency = " + str(q_max))
 
 # draw pressure
-""" picture = []
-for i in range(0, 4):
-    picture.append(np.empty([cells_number_x, cells_number_y]))
-picture = np.array(picture)
-
-for i in range(0, 4):
-    for j in range(0, cells_number_y):
-        for k in range(0, cells_number_x):
-            picture[i][k][j] = p[i][ind_data + k + j*cells_number_x]
-
 fig = plt.figure()
 
 plt.subplot(2, 2, 1)
-plt.imshow(picture[0])
+plt.imshow(p[0][200][:-1][:-1])
 
 plt.subplot(2, 2, 2)
-plt.imshow(picture[1])
+plt.imshow(p[1][200][:-1][:-1])
 
 plt.subplot(2, 2, 3)
-plt.imshow(picture[2])
+plt.imshow(p[2][200][:-1][:-1])
 
 plt.subplot(2, 2, 4)
-plt.imshow(picture[3])
+plt.imshow(p[3][200][:-1][:-1])
 
-plt.show() """
+plt.show()
 
 # draw energy spectrum
 energy_spectrum = np.array(energy_spectrum)
@@ -287,15 +284,15 @@ freq_coord = np.linspace(0, amplitude_freq + max_fr_deviation, 50)
 fig = plt.figure()
 
 plt.subplot(2, 2, 1)
-plt.plot(freq_coord, energy_spectrum[0])
+plt.plot(np.log(freq_coord), np.log(energy_spectrum[0]))
 
 plt.subplot(2, 2, 2)
-plt.plot(freq_coord, energy_spectrum[1])
+plt.plot(np.log(freq_coord), np.log(energy_spectrum[1]))
 
 plt.subplot(2, 2, 3)
-plt.plot(freq_coord, energy_spectrum[2])
+plt.plot(np.log(freq_coord), np.log(energy_spectrum[2]))
 
 plt.subplot(2, 2, 4)
-plt.plot(freq_coord, energy_spectrum[3])
+plt.plot(np.log(freq_coord), np.log(energy_spectrum[3]))
 
 plt.show()
