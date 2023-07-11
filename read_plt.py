@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import struct
-from scipy.fft import ifftn, fftfreq, fftshift
+from scipy.fft import fftn, fftfreq, fftshift
 import math
 
 # info from parameters.dat file:
@@ -211,7 +211,7 @@ def find_energy_spectrum(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z
                     i -= 1
                 if (i >= count_of_cells):
                     i = count_of_cells - 1
-                while (abs(k - i * amplitude / count_of_cells) < max_fr_deviation):
+                while (abs(k - i * amplitude / count_of_cells) < max_fr_deviation and i >= 0):
                     spectrum[i] += E
                     i -= 1
 
@@ -228,9 +228,9 @@ def find_full_energy(u, v, w, size_z, size_y, size_x):
     return E / (16.0 * math.pi * math.pi * math.pi)
 
 # calculation of frequency arrays along coordinate axes
-kx = fftshift(fftfreq(cells_number_x, dx))
-ky = fftshift(fftfreq(cells_number_y, dy))
-kz = fftshift(fftfreq(cells_number_z, dz))
+kx = fftfreq(cells_number_x * 2, dx)
+ky = fftfreq(cells_number_y * 2, dy)
+kz = fftfreq(cells_number_z * 2, dz)
 delta_fr = (kx[1] - kx[0]) / 2.0
 kx += delta_fr
 delta_fr = (ky[1] - ky[0]) / 2.0
@@ -238,13 +238,17 @@ ky += delta_fr
 delta_fr = (kz[1] - kz[0]) / 2.0
 kz += delta_fr
 
+kx = kx[0:len(kx) // 2]
+ky = ky[0:len(ky) // 2]
+kz = kz[0:len(kz) // 2]
+
 energy_spectrum = []
 # cycle according to the time we are interested in
 for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1):
     # fourier image of velocity components
-    fourier_u = np.real(ifftn(u_center[i]))
-    fourier_v = np.real(ifftn(v_center[i]))
-    fourier_w = np.real(ifftn(w_center[i]))
+    fourier_u = np.real(fftn(u_center[i]))
+    fourier_v = np.real(fftn(v_center[i]))
+    fourier_w = np.real(fftn(w_center[i]))
 
     # find E(q):
     amplitude_freq = max(max(kz), max(ky), max(kx))
@@ -259,40 +263,50 @@ for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1
     print("time moment: " + str((i + int(start_time / time_step)) * time_step))
     print("full kinetic energy = ")
     print(find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z, cells_number_y, cells_number_x))
-    print("maximum spectrum of energy = " + str(max_energy) + " in frequency = " + str(q_max))
+    print("maximum spectrum of energy = " + str(max_energy) + " in wave vector = " + str(q_max))
 
 # draw pressure
-fig = plt.figure()
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
 
-plt.subplot(2, 2, 1)
-plt.imshow(p[0][200][:-1][:-1])
+axs[0, 0].set_title("p, time = " + str((0 + int(start_time / time_step)) * time_step) + " , z = 0")
+axs[0, 0].imshow(p[0][200][:-1][:-1])
 
-plt.subplot(2, 2, 2)
-plt.imshow(p[1][200][:-1][:-1])
+axs[0, 1].set_title("p, time = " + str((1 + int(start_time / time_step)) * time_step) + " , z = 0")
+axs[0, 1].imshow(p[1][200][:-1][:-1])
 
-plt.subplot(2, 2, 3)
-plt.imshow(p[2][200][:-1][:-1])
+axs[1, 0].set_title("p, time = " + str((2 + int(start_time / time_step)) * time_step) + " , z = 0")
+axs[1, 0].imshow(p[2][200][:-1][:-1])
 
-plt.subplot(2, 2, 4)
-plt.imshow(p[3][200][:-1][:-1])
+axs[1, 1].set_title("p, time = " + str((3 + int(start_time / time_step)) * time_step) + " , z = 0")
+axs[1, 1].imshow(p[3][200][:-1][:-1])
 
 plt.show()
 
 # draw energy spectrum
 energy_spectrum = np.array(energy_spectrum)
 freq_coord = np.linspace(0, amplitude_freq + max_fr_deviation, 50)
-fig = plt.figure()
 
-plt.subplot(2, 2, 1)
-plt.plot(np.log(freq_coord), np.log(energy_spectrum[0]))
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10))
+fig.suptitle('energy spectrum', fontsize=14)
 
-plt.subplot(2, 2, 2)
-plt.plot(np.log(freq_coord), np.log(energy_spectrum[1]))
+axs[0, 0].set_title("time = " + str((0 + int(start_time / time_step)) * time_step))
+axs[0, 0].plot(np.log10(freq_coord), np.log10(energy_spectrum[0]))
+axs[0, 0].set_ylabel('log(E)')
+axs[0, 0].set_xlabel('wave vector')
 
-plt.subplot(2, 2, 3)
-plt.plot(np.log(freq_coord), np.log(energy_spectrum[2]))
+axs[0, 1].set_title("time = " + str((1 + int(start_time / time_step)) * time_step))
+axs[0, 1].plot(np.log10(freq_coord), np.log10(energy_spectrum[1]))
+axs[0, 1].set_ylabel('log(E)')
+axs[0, 1].set_xlabel('wave vector')
 
-plt.subplot(2, 2, 4)
-plt.plot(np.log(freq_coord), np.log(energy_spectrum[3]))
+axs[1, 0].set_title("time = " + str((2 + int(start_time / time_step)) * time_step))
+axs[1, 0].plot(np.log10(freq_coord), np.log10(energy_spectrum[2]))
+axs[1, 0].set_ylabel('log(E)')
+axs[1, 0].set_xlabel('wave vector')
+
+axs[1, 1].set_title("time = " + str((3 + int(start_time / time_step)) * time_step))
+axs[1, 1].plot(np.log10(freq_coord), np.log10(energy_spectrum[3]))
+axs[1, 1].set_ylabel('log(E)')
+axs[1, 1].set_xlabel('wave vector')
 
 plt.show()
