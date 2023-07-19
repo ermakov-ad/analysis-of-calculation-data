@@ -1,33 +1,31 @@
 time moment: 0.0
-full kinetic energy = 
-2.474807108344193e-08
-maximum spectrum of energy = 7.794530715836941e-12 in frequency = 10.795798185580137
+full kinetic energy = 11155.334316585724
+maximum spectrum of energy = 3646.293287752297 in wave vector = 4.24352447854375
+
 time moment: 0.001
-full kinetic energy = 
-0.0061934744884737805
-maximum spectrum of energy = 5.327482288630956e-05 in frequency = 31.11730065255452
+full kinetic energy = 805489629.6768899
+maximum spectrum of energy = 664770527.7039655 in wave vector = 4.667876926398125
+
 time moment: 0.002
-full kinetic energy = 
-0.003279940824653557
-maximum spectrum of energy = 3.340208207796834e-05 in frequency = 31.11730065255452
+full kinetic energy = 472169405.59890914
+maximum spectrum of energy = 336406931.34496474 in wave vector = 4.667876926398125
+
 time moment: 0.003
-full kinetic energy = 
-0.000796308101751963
-maximum spectrum of energy = 1.4155624174890358e-05 in frequency = 31.11730065255452
+full kinetic energy = 128984398.10149826
+maximum spectrum of energy = 30534993.4913094 in wave vector = 5.5165818221068745
 
 time moment: 0.231
-full kinetic energy = 
-38420590930.3457
-maximum spectrum of energy = 13184537184.486467 in wave vector = 7.6301130033423545
+full kinetic energy = 332353787.8705486
+maximum spectrum of energy = 203133506.74754456 in wave vector = 4.667876926398125
+
 time moment: 0.232
-full kinetic energy =
-38521552845.0389
-maximum spectrum of energy = 13021295074.065342 in wave vector = 7.6301130033423545
+full kinetic energy = 340099893.48887897
+maximum spectrum of energy = 208815175.50018838 in wave vector = 4.667876926398125
+
 time moment: 0.233
-full kinetic energy = 
-38566030337.72473
-maximum spectrum of energy = 12832323738.635052 in wave vector = 7.6301130033423545
-time moment: 0.234    
-full kinetic energy = 
-39131794341.84218
-maximum spectrum of energy = 13473654174.429657 in wave vector = 7.6301130033423545
+full kinetic energy = 342460984.7197141
+maximum spectrum of energy = 186617944.72290355 in wave vector = 4.667876926398125
+
+time moment: 0.234
+full kinetic energy = 336822714.4136537
+maximum spectrum of energy = 176174510.97441733 in wave vector = 4.667876926398125
