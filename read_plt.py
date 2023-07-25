@@ -137,7 +137,7 @@ def get_data_from_file(file_number):
 # chose time interval
 # start_time = 0.0
 # end_time = 0.003
-start_time = 0.231
+start_time = 0.211
 end_time = 0.234
 
 print(int(start_time / time_step))
@@ -220,7 +220,7 @@ kx = np.arange(cells_number_x // 2)
 ky = np.arange(cells_number_y // 2)
 kz = np.arange(cells_number_z // 4 // 2)
 
-energy_spectrum = []
+#energy_spectrum = []
 amplitude_wave_vec = modulus_of_vector([cells_number_z // 4 // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
 
 def find_velocity_vec(file_number):
@@ -259,19 +259,20 @@ v_k = []
 w_k = []
 
 count_of_vec_steps = 200
+
 # cycle according to the time we are interested in
 for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1):    
-    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + int(start_time / time_step), count_of_vec_steps)
-    print("time moment: " + str((i + int(start_time / time_step)) * time_step))
-    print("full kinetic energy = " + str(full_E))
-    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
-    energy_spectrum.append(energy_sp)
+#    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + int(start_time / time_step), count_of_vec_steps)
+#    print("time moment: " + str((i + int(start_time / time_step)) * time_step))
+#    print("full kinetic energy = " + str(full_E))
+#    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
+#    energy_spectrum.append(energy_sp)
 
     vel_vec = find_velocity_vec(i + int(start_time / time_step))
     u_k.append(vel_vec[0])
     v_k.append(vel_vec[1])
     w_k.append(vel_vec[2])
-energy_spectrum = np.array(energy_spectrum)
+#energy_spectrum = np.array(energy_spectrum)
 
 l = int(end_time / time_step + 1) - int(start_time / time_step)
 u_wk = np.real(fft(u_k))
@@ -297,8 +298,10 @@ for i in range(0, l//2):
                     if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
                         A[theta_ind] += sqr_of_vector([u_wk[i][ind_z][ind_y][ind_x], v_wk[i][ind_z][ind_y][ind_x], w_wk[i][ind_z][ind_y][ind_x]], 3)
     A_w_theta.append(A)
+    print("end calculation amplitude in frequency " + str(freq_[i]))
 A_w_theta = np.array(A_w_theta)
 
+"""
 # draw energy spectrum
 wave_coord = np.linspace(0, amplitude_wave_vec + max_wave_deviation, count_of_vec_steps)
 
@@ -329,9 +332,10 @@ axs[1, 1].set_ylabel('log(E)')
 axs[1, 1].set_xlabel('lengh of wave vector')
 axs[1, 1].grid(True)
 
-plt.show()
+plt.show()"""
 
 # draw inertial waves
+"""
 fig, axs = plt.subplots(nrows=2, ncols=1, figsize=(10, 14))
 fig.suptitle('amplitudes of inertial waves in phase space', fontsize=14)
 
@@ -347,9 +351,11 @@ axs[1].set_ylabel('A(frequency, angle)')
 axs[1].set_xlabel('angle (theta)')
 axs[1].grid(True)
 
-plt.show()
+plt.show()"""
 
-print("frequency = " + str(freq_[0]))
-print("maximum of A = " + str(np.max(A_w_theta[0])) + " in angle "+ str(theta_array[np.argmax(A_w_theta[0])]))
-print("frequency = " + str(freq_[1]))
-print("maximum of A = " + str(np.max(A_w_theta[1])) + " in angle "+ str(theta_array[np.argmax(A_w_theta[1])]))
+fig, ax = plt.subplots()
+ax.set_title("A(frequency, angle)")
+ax.imshow(A_w_theta)
+ax.set_xlabel("angle (theta)")
+ax.set_ylabel("frequency")
+plt.show()
