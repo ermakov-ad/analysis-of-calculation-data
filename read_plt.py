@@ -21,7 +21,7 @@ dy = (up_boundary_y - down_boundary_y) / cells_number_y
 dz = (front_boundary_z - rear_boundary_z) / cells_number_z
 
 def construct_file_path(n):
-    path = 'data_numerical_solution\\numerical_solution_'
+    path = 'C:\\Users\\Admin\\Documents\\py\\data_numerical_solution\\numerical_solution_'
     l = int(len(str(n)))
     help_string = ''
     for i in range(0, 6-l, 1):
@@ -223,7 +223,7 @@ kz = np.arange(cells_number_z // 4 // 2)
 #energy_spectrum = []
 amplitude_wave_vec = modulus_of_vector([cells_number_z // 4 // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
 
-def find_velocity_vec(file_number):
+def find_fourier_velocity_vec(file_number):
     x, y, z, p, u_center, v_center, w_center = get_data_from_file(file_number)
     print("end reading " + str(file_number) + " time itteration")
 
@@ -239,7 +239,7 @@ def find_velocity_vec(file_number):
     return fourier_u, fourier_v, fourier_w
 
 def find_spectrum_from_file(file_number, count_of_vec_points):
-    fourier_u, fourier_v, fourier_w = find_velocity_vec(file_number)
+    fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z // 4 // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec)
     max_energy = np.max(E_i)
@@ -268,7 +268,7 @@ for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1
 #    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
 #    energy_spectrum.append(energy_sp)
 
-    vel_vec = find_velocity_vec(i + int(start_time / time_step))
+    vel_vec = find_fourier_velocity_vec(i + int(start_time / time_step))
     u_k.append(vel_vec[0])
     v_k.append(vel_vec[1])
     w_k.append(vel_vec[2])
@@ -285,21 +285,24 @@ freq_ = fftfreq(l, time_step)[:l//2]    # w
 # v (w, k) = (u, v, w)[w][kz, ky, kx]
 # A_w_theta = summ (v(w, k)^2), where |theta_k - theta| < delta_theta / 2
 delta_theta = 0.15
-count_of_theta = int(math.pi / delta_theta) + 1
+count_of_theta = 50
 A_w_theta = []
+maximum_of_A = []
 theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
-for i in range(0, l//2):
+for omega in range(0, l//2):
     A = np.zeros(count_of_theta)
     for ind_z in range(0, cells_number_z // 4 // 2):
         for ind_y in range(0, cells_number_y // 2):
             for ind_x in range(0, cells_number_x // 2):
+                mod_k, theta_k, phi = spherical_coord_from_vec(ind_z, ind_y, ind_x)
                 for theta_ind in range(0, count_of_theta):
-                    mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
                     if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
-                        A[theta_ind] += sqr_of_vector([u_wk[i][ind_z][ind_y][ind_x], v_wk[i][ind_z][ind_y][ind_x], w_wk[i][ind_z][ind_y][ind_x]], 3)
+                        A[theta_ind] += sqr_of_vector([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]], 3)
     A_w_theta.append(A)
-    print("end calculation amplitude in frequency " + str(freq_[i]))
+    maximum_of_A.append(np.max(A))
+    print("end calculation amplitude in frequency " + str(freq_[omega]))
 A_w_theta = np.array(A_w_theta)
+maximum_of_A = np.array(maximum_of_A)
 
 """
 # draw energy spectrum
@@ -356,6 +359,19 @@ plt.show()"""
 fig, ax = plt.subplots()
 ax.set_title("A(frequency, angle)")
 ax.imshow(A_w_theta)
-ax.set_xlabel("angle (theta)")
+ax.set_xlabel("angle (theta), rad")
 ax.set_ylabel("frequency")
+ax.set_xticks(np.arange(count_of_theta), labels=np.round(theta_array, decimals=1))
+ax.set_yticks(np.arange(l//2), labels=np.round(freq_, decimals=1))
+plt.xticks(rotation=45)
+plt.show()
+
+fig, ax = plt.subplots()
+ax.set_title("maximum of A(frequency, angle)")
+ax.plot(np.arange(l//2), maximum_of_A)
+ax.set_xlabel("frequency")
+ax.set_ylabel("A")
+#ax.set_yticks(np.arange(count_of_theta), labels=theta_array)
+ax.set_xticks(np.arange(l//2), labels=np.round(freq_, decimals=1))
+plt.xticks(rotation=45)
 plt.show()
