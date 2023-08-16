@@ -11,17 +11,22 @@ down_boundary_y =   -3.1415
 up_boundary_y =     3.1415
 rear_boundary_z =   -3.1415
 front_boundary_z =  3.1415
-cells_number_x = 100
-cells_number_y = 100
-cells_number_z = 400
-time_step = 0.001
+#cells_number_x = 100
+#cells_number_y = 100
+#cells_number_z = 400
+#time_step = 0.001
+cells_number_x = 200
+cells_number_y = 200
+cells_number_z = 500
+time_step = 0.0004
 
 dx = (right_boundary_x - left_boundary_x) / cells_number_x
 dy = (up_boundary_y - down_boundary_y) / cells_number_y
 dz = (front_boundary_z - rear_boundary_z) / cells_number_z
 
 def construct_file_path(n):
-    path = 'C:\\Users\\Admin\\Documents\\py\\data_numerical_solution\\numerical_solution_'
+    #path = 'C:\\Users\\Admin\\Documents\\py\\data_numerical_solution\\numerical_solution_'
+    path = 'C:\\Users\\Admin\\Documents\\py\\data_numerical_solution2\\numerical_solution_'
     l = int(len(str(n)))
     help_string = ''
     for i in range(0, 6-l, 1):
@@ -67,7 +72,7 @@ def get_data_from_file(file_number):
     v = np.empty([cells_number_z, cells_number_y, cells_number_x], dtype=float)
     w = np.empty([cells_number_z, cells_number_y, cells_number_x], dtype=float)
 
-    p_new = np.empty([cells_number_x, cells_number_x, cells_number_x], dtype=float) # change array's size for 100 * 100 * 100
+    p_new = np.empty([cells_number_x, cells_number_x, cells_number_x], dtype=float) # change array's size for 200 * 200 * 200
     u_new = np.empty([cells_number_x, cells_number_x, cells_number_x], dtype=float)
     v_new = np.empty([cells_number_x, cells_number_x, cells_number_x], dtype=float)
     w_new = np.empty([cells_number_x, cells_number_x, cells_number_x], dtype=float)
@@ -95,8 +100,14 @@ def get_data_from_file(file_number):
             for x_ind in range(0, cells_number_x):
                 value = file.read(8)
                 p[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
-    for it in range(0, cells_number_x):
-        p_new[it] = (9*p[4*it + 1] + 9*p[4*it + 2] - p[4*it + 0] - p[4*it + 3]) / 16
+    # for 400 -> 100:
+    #for it in range(0, cells_number_x):
+    #    p_new[it] = (9*p[4*it + 1] + 9*p[4*it + 2] - p[4*it + 0] - p[4*it + 3]) / 16
+    #p = p_new
+    # for 500 -> 200:
+    for it in range(0, cells_number_x, 2):
+        p_new[it] = 415.0*p[5*it//2 + 0]/256.0 - 635.0*p[5*it//2 + 1]/128.0 + 141.0*p[5*it//2 + 2]/16.0 - 765.0*p[5*it//2 + 3]/128 + 385.0*p[5*it//2 + 4]/256.0
+        p_new[it + 1] = 385.0*p[5*it//2 + 0]/256.0 - 765.0*p[5*it//2 + 1]/128.0 + 141.0*p[5*it//2 + 2]/16.0 - 635.0*p[5*it//2 + 3]/128 + 415.0*p[5*it//2 + 4]/256.0
     p = p_new
 
     for z_ind in range(0, cells_number_z):
@@ -104,8 +115,14 @@ def get_data_from_file(file_number):
             for x_ind in range(0, cells_number_x):
                 value = file.read(8)
                 u[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
-    for it in range(0, cells_number_x):
-        u_new[it] = (9*u[4*it + 1] + 9*u[4*it + 2] - u[4*it + 0] - u[4*it + 3]) / 16
+    # for 400 -> 100:
+    #for it in range(0, cells_number_x):
+    #    u_new[it] = (9*u[4*it + 1] + 9*u[4*it + 2] - u[4*it + 0] - u[4*it + 3]) / 16
+    #u = u_new
+    # for 500 -> 200:
+    for it in range(0, cells_number_x, 2):
+        u_new[it] = 415.0*u[5*it//2 + 0]/256.0 - 635.0*u[5*it//2 + 1]/128.0 + 141.0*u[5*it//2 + 2]/16.0 - 765.0*u[5*it//2 + 3]/128 + 385.0*u[5*it//2 + 4]/256.0
+        u_new[it + 1] = 385.0*u[5*it//2 + 0]/256.0 - 765.0*u[5*it//2 + 1]/128.0 + 141.0*u[5*it//2 + 2]/16.0 - 635.0*u[5*it//2 + 3]/128 + 415.0*u[5*it//2 + 4]/256.0
     u = u_new
 
     for z_ind in range(0, cells_number_z):
@@ -113,8 +130,14 @@ def get_data_from_file(file_number):
             for x_ind in range(0, cells_number_x):
                 value = file.read(8)
                 v[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
-    for it in range(0, cells_number_x):
-        v_new[it] = (9*v[4*it + 1] + 9*v[4*it + 2] - v[4*it + 0] - v[4*it + 3]) / 16
+    # for 400 -> 100:
+    #for it in range(0, cells_number_x):
+    #    v_new[it] = (9*v[4*it + 1] + 9*v[4*it + 2] - v[4*it + 0] - v[4*it + 3]) / 16
+    #v = v_new
+    # for 500 -> 200:
+    for it in range(0, cells_number_x, 2):
+        v_new[it] = 415.0*v[5*it//2 + 0]/256.0 - 635.0*v[5*it//2 + 1]/128.0 + 141.0*v[5*it//2 + 2]/16.0 - 765.0*v[5*it//2 + 3]/128 + 385.0*v[5*it//2 + 4]/256.0
+        v_new[it + 1] = 385.0*v[5*it//2 + 0]/256.0 - 765.0*v[5*it//2 + 1]/128.0 + 141.0*v[5*it//2 + 2]/16.0 - 635.0*v[5*it//2 + 3]/128 + 415.0*v[5*it//2 + 4]/256.0
     v = v_new
 
     for z_ind in range(0, cells_number_z):
@@ -122,8 +145,14 @@ def get_data_from_file(file_number):
             for x_ind in range(0, cells_number_x):
                 value = file.read(8)
                 w[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
-    for it in range(0, cells_number_x):
-        w_new[it] = (9*w[4*it + 1] + 9*w[4*it + 2] - w[4*it + 0] - w[4*it + 3]) / 16
+    # for 400 -> 100:
+    #for it in range(0, cells_number_x):
+    #    w_new[it] = (9*w[4*it + 1] + 9*w[4*it + 2] - w[4*it + 0] - w[4*it + 3]) / 16
+    #w = w_new
+    # for 500 -> 200:
+    for it in range(0, cells_number_x, 2):
+        w_new[it] = 415.0*w[5*it//2 + 0]/256.0 - 635.0*w[5*it//2 + 1]/128.0 + 141.0*w[5*it//2 + 2]/16.0 - 765.0*w[5*it//2 + 3]/128 + 385.0*w[5*it//2 + 4]/256.0
+        w_new[it + 1] = 385.0*w[5*it//2 + 0]/256.0 - 765.0*w[5*it//2 + 1]/128.0 + 141.0*w[5*it//2 + 2]/16.0 - 635.0*w[5*it//2 + 3]/128 + 415.0*w[5*it//2 + 4]/256.0
     w = w_new
 
     mistake = file.read()
@@ -133,12 +162,14 @@ def get_data_from_file(file_number):
         print("something doesn't work")
     file.close()
     return x, y, z, p, u, v, w
+#cells_number_z_new = cells_number_z // 4
+cells_number_z_new = cells_number_x
 
 # chose time interval
-# start_time = 0.0
-# end_time = 0.003
-start_time = 0.211
-end_time = 0.234
+start_time = 0.0
+end_time = 0.003
+start_number = 282
+end_number = 293
 
 print(int(start_time / time_step))
 print(int(end_time / time_step + 1))
@@ -218,10 +249,9 @@ def find_full_energy(u, v, w, size_z, size_y, size_x):
 # calculation of wave vectors arrays along coordinate axes
 kx = np.arange(cells_number_x // 2)
 ky = np.arange(cells_number_y // 2)
-kz = np.arange(cells_number_z // 4 // 2)
+kz = np.arange(cells_number_z_new // 2)
 
-#energy_spectrum = []
-amplitude_wave_vec = modulus_of_vector([cells_number_z // 4 // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
+amplitude_wave_vec = modulus_of_vector([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
 
 def find_fourier_velocity_vec(file_number):
     x, y, z, p, u_center, v_center, w_center = get_data_from_file(file_number)
@@ -232,19 +262,19 @@ def find_fourier_velocity_vec(file_number):
     fourier_v = np.real(fftn(v_center))
     fourier_w = np.real(fftn(w_center))
     
-    fourier_u = fourier_u[:cells_number_z // 4 // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_v = fourier_v[:cells_number_z // 4 // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_w = fourier_w[:cells_number_z // 4 // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_u = fourier_u[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_v = fourier_v[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_w = fourier_w[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u, fourier_v, fourier_w
 
 def find_spectrum_from_file(file_number, count_of_vec_points):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
     # find E(q) in this file:
-    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z // 4 // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec)
+    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec)
     max_energy = np.max(E_i)
     q_max = np.argmax(E_i) * amplitude_wave_vec / count_of_vec_points
-    full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z // 4 // 2, cells_number_y // 2, cells_number_x // 2)
+    full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
     return E_i, max_energy, q_max, full_e
 
 def spherical_coord_from_vec(x, y, z):
@@ -259,21 +289,30 @@ v_k = []
 w_k = []
 
 count_of_vec_steps = 200
+def save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, energy_spectrum_array, time):
+    wave_coord = np.linspace(0, amplitude_wave_vec + max_wave_deviation, count_of_vec_steps)
+    fig, axs = plt.subplots(figsize=(10, 10), dpi = 100)
+    fig.suptitle('energy spectrum', fontsize=20)
+    axs.set_title("time = " + str(time))
+    axs.plot(np.log10(wave_coord), np.log10(energy_spectrum_array))
+    axs.set_ylabel('log(E)')
+    axs.set_xlabel('lengh of wave vector')
+    axs.grid(True)
+    plt.savefig('spectrum_time=' + str(time) + '.png')
 
 # cycle according to the time we are interested in
-for i in range(0, int(end_time / time_step + 1) - int(start_time / time_step), 1):    
-#    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + int(start_time / time_step), count_of_vec_steps)
-#    print("time moment: " + str((i + int(start_time / time_step)) * time_step))
-#    print("full kinetic energy = " + str(full_E))
-#    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
-#    energy_spectrum.append(energy_sp)
+for i in range(0, end_number - start_number, 1):    
+    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + start_number, count_of_vec_steps)
+    print("time moment: " + str((i + start_number) * 0.001))
+    print("full kinetic energy = " + str(full_E))
+    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
+    save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, energy_sp, (i + start_number) * 0.001)
 
-    vel_vec = find_fourier_velocity_vec(i + int(start_time / time_step))
-    u_k.append(vel_vec[0])
-    v_k.append(vel_vec[1])
-    w_k.append(vel_vec[2])
-#energy_spectrum = np.array(energy_spectrum)
-
+#    vel_vec = find_fourier_velocity_vec(i + int(start_time / time_step))
+#    u_k.append(vel_vec[0])
+#    v_k.append(vel_vec[1])
+#    w_k.append(vel_vec[2])
+"""
 l = int(end_time / time_step + 1) - int(start_time / time_step)
 u_wk = np.real(fft(u_k))
 v_wk = np.real(fft(v_k))
@@ -291,10 +330,10 @@ maximum_of_A = []
 theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
 for omega in range(0, l//2):
     A = np.zeros(count_of_theta)
-    for ind_z in range(0, cells_number_z // 4 // 2):
+    for ind_z in range(0, cells_number_z_new // 2):
         for ind_y in range(0, cells_number_y // 2):
             for ind_x in range(0, cells_number_x // 2):
-                mod_k, theta_k, phi = spherical_coord_from_vec(ind_z, ind_y, ind_x)
+                mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
                 for theta_ind in range(0, count_of_theta):
                     if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
                         A[theta_ind] += sqr_of_vector([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]], 3)
@@ -303,39 +342,7 @@ for omega in range(0, l//2):
     print("end calculation amplitude in frequency " + str(freq_[omega]))
 A_w_theta = np.array(A_w_theta)
 maximum_of_A = np.array(maximum_of_A)
-
 """
-# draw energy spectrum
-wave_coord = np.linspace(0, amplitude_wave_vec + max_wave_deviation, count_of_vec_steps)
-
-fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 14))
-fig.suptitle('energy spectrum', fontsize=14)
-
-axs[0, 0].set_title("time = " + str((0 + int(start_time / time_step)) * time_step))
-axs[0, 0].plot(np.log10(wave_coord), np.log10(energy_spectrum[0]))
-axs[0, 0].set_ylabel('log(E)')
-axs[0, 0].set_xlabel('lengh of wave vector')
-axs[0, 0].grid(True)
-
-axs[0, 1].set_title("time = " + str((1 + int(start_time / time_step)) * time_step))
-axs[0, 1].plot(np.log10(wave_coord), np.log10(energy_spectrum[1]))
-axs[0, 1].set_ylabel('log(E)')
-axs[0, 1].set_xlabel('lengh of wave vector')
-axs[0, 1].grid(True)
-
-axs[1, 0].set_title("time = " + str((2 + int(start_time / time_step)) * time_step))
-axs[1, 0].plot(np.log10(wave_coord), np.log10(energy_spectrum[2]))
-axs[1, 0].set_ylabel('log(E)')
-axs[1, 0].set_xlabel('lengh of wave vector')
-axs[1, 0].grid(True)
-
-axs[1, 1].set_title("time = " + str((3 + int(start_time / time_step)) * time_step))
-axs[1, 1].plot(np.log10(wave_coord), np.log10(energy_spectrum[3]))
-axs[1, 1].set_ylabel('log(E)')
-axs[1, 1].set_xlabel('lengh of wave vector')
-axs[1, 1].grid(True)
-
-plt.show()"""
 
 # draw inertial waves
 """
@@ -355,7 +362,7 @@ axs[1].set_xlabel('angle (theta)')
 axs[1].grid(True)
 
 plt.show()"""
-
+"""
 fig, ax = plt.subplots()
 ax.set_title("A(frequency, angle)")
 ax.imshow(A_w_theta)
@@ -375,3 +382,4 @@ ax.set_ylabel("A")
 ax.set_xticks(np.arange(l//2), labels=np.round(freq_, decimals=1))
 plt.xticks(rotation=45)
 plt.show()
+"""

@@ -1,0 +1,76 @@
+PARAMETERS_FOR_2D1PHI_PROGRAM(ALL_IN_SI)
+
+---NAME_OF_PROGRAM---2D1PHI
+
+---GENERAL_PART---
+
+---TIME_STEP---
+
+constant_time_step: 1
+cfl:                1.0
+dt:                 0.0004
+
+approximation_order:    1
+
+mu:        0.01
+
+---MODE---
+
+is_debug:   1
+
+---OUTPUT---
+
+is_output_on_time:  1
+stop_time:          100
+stop_steps_number:  1000
+output_number:      1000
+is_tecplot_header:  1
+
+f0: 0.8
+omega: 10
+---SMALL_CONSTANTS---
+
+eps_general:    1.e-8
+eps_ludcmp:     1.e-3
+eps_decouple:   1.e-3
+eps_thin_layer: 1.e-4
+eps_contact:    1.e-15
+eps_disp_abs:   1.e-6
+eps_cut_out:    1.e-2
+
+---3D_PARAMETERS---
+
+---GRID---
+
+left_boundary_x:  -3.1415
+right_boundary_x: 3.1415
+down_boundary_y:  -3.1415
+up_boundary_y:    3.1415
+rear_boundary_z:  -3.1415
+front_boundary_z: 3.1415
+cells_number_x:   200
+cells_number_y:   200
+cells_number_z:   500
+
+---INITIAL_CONDITIONS---
+
+x_blocks_number:   1
+y_blocks_number:   1
+z_blocks_number:   1
+
+BLOCK_11
+
+x_begin: 0
+x_end:   199
+y_begin: 0
+y_end:   199
+z_begin: 0
+z_end:   499
+type: 1
+pressure: 0
+u: 0
+v: 0
+w: 0
+
+
+
