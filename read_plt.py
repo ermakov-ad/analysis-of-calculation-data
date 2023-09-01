@@ -261,6 +261,25 @@ def find_fourier_velocity_vec(file_number):
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u, fourier_v, fourier_w
 
+def find_inertial_wave(file_number_array):
+    u_center_arr = []
+    v_center_arr = []
+    w_center_arr = []
+    for num in file_number_array:
+        x, y, z, p, u_center, v_center, w_center = get_data_from_file(num)
+        u_center_arr.append(u_center)
+        v_center_arr.append(v_center)
+        w_center_arr.append(w_center)
+    fourier_u = np.real(fftn(u_center_arr))
+    fourier_v = np.real(fftn(v_center_arr))
+    fourier_w = np.real(fftn(w_center_arr))
+
+    l = len(file_number_array)
+    fourier_u = fourier_u[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_v = fourier_v[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_w = fourier_w[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    return fourier_u, fourier_v, fourier_w
+
 def find_spectrum_from_file(file_number, count_of_vec_points):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
     # find E(q) in this file:
@@ -277,9 +296,9 @@ def spherical_coord_from_vec(x, y, z):
     phi = np.arctan2(y, x)  # for elevation angle defined from XY-plane up
     return r, theta, phi
 
-u_k = []
-v_k = []
-w_k = []
+#u_k = []
+#v_k = []
+#w_k = []
 
 count_of_vec_steps = 200
 def save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, energy_spectrum_array, time):
@@ -301,15 +320,16 @@ for i in range(0, end_number - start_number, 1):
     print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
     #save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, energy_sp, (i + start_number) * 0.001)
 
-    vel_vec = find_fourier_velocity_vec(i + start_number)
-    u_k.append(vel_vec[0])
-    v_k.append(vel_vec[1])
-    w_k.append(vel_vec[2])
+    #vel_vec = find_fourier_velocity_vec(i + start_number)
+    #u_k.append(vel_vec[0])
+    #v_k.append(vel_vec[1])
+    #w_k.append(vel_vec[2])
 
+u_wk, v_wk, w_wk = find_inertial_wave(np.arange(start_number, end_number+1))
 l = end_number - start_number + 1
-u_wk = np.real(fft(u_k))[:l // 2]
-v_wk = np.real(fft(v_k))[:l // 2]
-w_wk = np.real(fft(w_k))[:l // 2]
+#u_wk = np.real(fft(u_k))[:l // 2]
+#v_wk = np.real(fft(v_k))[:l // 2]
+#w_wk = np.real(fft(w_k))[:l // 2]
 freq_ = fftfreq(l, time_step)[:l // 2]    # w 
 # v (w, k) = (u, v, w)[w][kz, ky, kx]
 # A_w_theta = summ (v(w, k)^2), where |theta_k - theta| < delta_theta / 2
