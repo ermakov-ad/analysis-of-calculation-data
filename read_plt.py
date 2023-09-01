@@ -14,7 +14,7 @@ front_boundary_z =  3.1415
 cells_number_x = 100
 cells_number_y = 100
 cells_number_z = 400
-time_step = 0.001
+time_step = 0.1
 #cells_number_x = 200
 #cells_number_y = 200
 #cells_number_z = 500
@@ -352,6 +352,13 @@ for omega in range(0, l // 2):
     print("end calculation amplitude in frequency " + str(freq_[omega]))
 A_w_theta = np.array(A_w_theta)
 maximum_of_A = np.array(maximum_of_A)
+# delete maximum in frequency = 0.0, because this maximum occurs due to the average flow velocity
+A_w_theta[0] = np.zeros(count_of_theta)
+A_w_theta[1] = np.zeros(count_of_theta)
+A_w_theta[2] = np.zeros(count_of_theta)
+maximum_of_A[0] = 0.0
+maximum_of_A[1] = 0.0
+maximum_of_A[2] = 0.0
 
 # draw inertial waves
 fig, ax = plt.subplots()
