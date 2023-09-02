@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import struct
-from scipy.fft import fftn, fft, fftfreq
+from scipy.fft import fftn, fftfreq
 import math
 
 # info from parameters.dat file:
@@ -162,9 +162,7 @@ def get_data_from_file(file_number):
 cells_number_z_new = cells_number_x
 
 # chose time interval
-start_time = 0.0
-end_time = 0.003
-start_number = 211
+start_number = 195  # numbers of file
 end_number = 234
 
 # convert 3D coordinates to 1D-index for array x/y/z
@@ -246,6 +244,7 @@ kz = np.arange(cells_number_z_new // 2)
 
 amplitude_wave_vec = modulus_of_vector([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
 
+# real part of fourier transform spatial velocity vector
 def find_fourier_velocity_vec(file_number):
     x, y, z, p, u_center, v_center, w_center = get_data_from_file(file_number)
     print("end reading " + str(file_number) + " time itteration")
@@ -261,6 +260,7 @@ def find_fourier_velocity_vec(file_number):
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u, fourier_v, fourier_w
 
+# temporary fourier transform of real part of fourier transform spatial velocity vector
 def find_inertial_wave(file_number_array):
     u_center_arr = []
     v_center_arr = []
@@ -280,7 +280,7 @@ def find_inertial_wave(file_number_array):
     fourier_w = fourier_w[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
     return fourier_u, fourier_v, fourier_w
 
-def find_spectrum_from_file(file_number, count_of_vec_points):
+def find_spectrum_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec)
@@ -312,53 +312,52 @@ def save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_st
     axs.grid(True)
     plt.savefig('spectrum_time=' + str(time) + '.png')
 
+# v (w, k) = (u, v, w)[w][kz, ky, kx]
+# A_w_theta = summ (v(w, k)^2), where |theta_k - theta| < delta_theta / 2
+def find_amplitude_of_inertial_waves(start_num, end_num, delta_theta, count_of_theta):
+    u_wk, v_wk, w_wk = find_inertial_wave(np.arange(start_number, end_number+1))    # np.arange return numpy array [start, end)
+    l = end_num - start_num + 1
+    freq_ = 2.0*math.pi*fftfreq(l, time_step)[:l // 2]    # w 
+    A_w_theta = []
+    maximum_of_A = []
+    theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
+    for omega in range(0, l // 2):
+        A = np.zeros(count_of_theta)
+        for ind_z in range(0, cells_number_z_new // 2):
+            for ind_y in range(0, cells_number_y // 2):
+                for ind_x in range(0, cells_number_x // 2):
+                    mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
+                    for theta_ind in range(0, count_of_theta):
+                        if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
+                            A[theta_ind] += sqr_of_vector([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]], 3)
+        A_w_theta.append(A)
+        maximum_of_A.append(np.max(A))
+        print("end calculation amplitude in frequency " + str(freq_[omega]))
+    A_w_theta = np.array(A_w_theta)
+    maximum_of_A = np.array(maximum_of_A)
+    # delete maximum in frequency = 0.0, because this maximum occurs due to the average flow velocity
+    A_w_theta[0] = np.zeros(count_of_theta)
+    A_w_theta[1] = np.zeros(count_of_theta)
+    A_w_theta[2] = np.zeros(count_of_theta)
+    maximum_of_A[0] = 0.0
+    maximum_of_A[1] = 0.0
+    maximum_of_A[2] = 0.0
+    return freq_, A_w_theta, maximum_of_A
+
 # cycle according to the time we are interested in
 for i in range(0, end_number - start_number, 1):    
-    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + start_number, count_of_vec_steps)
+    energy_sp, maximum_E, Q_max, full_E = find_spectrum_from_file(i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz)
     print("time moment: " + str((i + start_number) * 0.001))
     print("full kinetic energy = " + str(full_E))
     print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
     #save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, energy_sp, (i + start_number) * 0.001)
 
     #vel_vec = find_fourier_velocity_vec(i + start_number)
-    #u_k.append(vel_vec[0])
-    #v_k.append(vel_vec[1])
-    #w_k.append(vel_vec[2])
 
-u_wk, v_wk, w_wk = find_inertial_wave(np.arange(start_number, end_number+1))
-l = end_number - start_number + 1
-#u_wk = np.real(fft(u_k))[:l // 2]
-#v_wk = np.real(fft(v_k))[:l // 2]
-#w_wk = np.real(fft(w_k))[:l // 2]
-freq_ = fftfreq(l, time_step)[:l // 2]    # w 
-# v (w, k) = (u, v, w)[w][kz, ky, kx]
-# A_w_theta = summ (v(w, k)^2), where |theta_k - theta| < delta_theta / 2
 delta_theta = 0.15
-count_of_theta = 50
-A_w_theta = []
-maximum_of_A = []
+count_of_theta = 70
+freq_, A_w_theta, maximum_of_A = find_amplitude_of_inertial_waves(start_number, end_number, delta_theta, count_of_theta)
 theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
-for omega in range(0, l // 2):
-    A = np.zeros(count_of_theta)
-    for ind_z in range(0, cells_number_z_new // 2):
-        for ind_y in range(0, cells_number_y // 2):
-            for ind_x in range(0, cells_number_x // 2):
-                mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
-                for theta_ind in range(0, count_of_theta):
-                    if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
-                        A[theta_ind] += sqr_of_vector([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]], 3)
-    A_w_theta.append(A)
-    maximum_of_A.append(np.max(A))
-    print("end calculation amplitude in frequency " + str(freq_[omega]))
-A_w_theta = np.array(A_w_theta)
-maximum_of_A = np.array(maximum_of_A)
-# delete maximum in frequency = 0.0, because this maximum occurs due to the average flow velocity
-A_w_theta[0] = np.zeros(count_of_theta)
-A_w_theta[1] = np.zeros(count_of_theta)
-A_w_theta[2] = np.zeros(count_of_theta)
-maximum_of_A[0] = 0.0
-maximum_of_A[1] = 0.0
-maximum_of_A[2] = 0.0
 
 # draw inertial waves
 fig, ax = plt.subplots()
@@ -375,8 +374,9 @@ fig, ax = plt.subplots()
 ax.set_title("maximum of A(frequency, angle)")
 ax.plot(np.arange(len(maximum_of_A)), maximum_of_A)
 ax.set_xlabel("frequency")
-ax.set_ylabel("A")
+ax.set_ylabel("Amplitude")
 #ax.set_yticks(np.arange(count_of_theta), labels=theta_array)
 ax.set_xticks(np.arange(len(freq_)), labels=np.round(freq_, decimals=1))
+ax.grid(True, linestyle='--')
 plt.xticks(rotation=45)
 plt.show()
