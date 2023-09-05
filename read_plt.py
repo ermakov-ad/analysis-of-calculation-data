@@ -194,18 +194,6 @@ def coordinates_to_index(x_coordinate, y_coordinate, z_coordinate):
     x_index = int((x_coordinate - left_boundary_x) / dx)
     return z_index + y_index + x_index
 
-def modulus_of_vector(vec, l):
-    sqr = 0.0
-    for i in range(0, l):
-        sqr += vec[i] * vec[i]
-    return math.sqrt(sqr)
-
-def sqr_of_vector(vec, l):
-    sqr = 0.0
-    for i in range(0, l):
-        sqr += vec[i] * vec[i]
-    return sqr
-
 # find the energy spectrum at the choosen moment of time
 # E(q) = summ(Vk^2) / (2*pi)^3, if |k - q| <= 1/4;
 # k = sqrt(kx*kx + ky*ky + kz*kz)
@@ -218,9 +206,9 @@ def find_energy_spectrum(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
-                k = modulus_of_vector([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]], 3)
+                k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
                 i = int((k + max_wave_deviation_) * count_of_cells / amplitude)
-                E = sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+                E = np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2)
                 if i >= count_of_cells:
                     i = count_of_cells - 1
                 while abs(k - i * amplitude / count_of_cells) <= max_wave_deviation_ and i >= 0:
@@ -235,7 +223,7 @@ def find_full_energy(u, v, w, size_z, size_y, size_x):
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
-                E += sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3)
+                E += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2)
 
     return E / (16.0 * math.pi * math.pi * math.pi)
 
@@ -244,7 +232,7 @@ kx = np.arange(cells_number_x // 2)
 ky = np.arange(cells_number_y // 2)
 kz = np.arange(cells_number_z_new // 2)
 
-amplitude_wave_vec = modulus_of_vector([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1], 3)
+amplitude_wave_vec = np.linalg.norm(np.array([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1]))
 
 # real part of fourier transform spatial velocity vector
 def find_fourier_velocity_vec(file_number):
@@ -312,9 +300,9 @@ def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x,
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
-                k = modulus_of_vector([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]], 3)
+                k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
                 i = int((k + max_wave_deviation_) * count_of_cells / amplitude)
-                E = sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3) * k * k
+                E = np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
                 if i >= count_of_cells:
                     i = count_of_cells - 1
                 while abs(k - i * amplitude / count_of_cells) <= max_wave_deviation_ and i >= 0:
@@ -328,8 +316,8 @@ def find_full_rate_of_dissipation(u, v, w, size_z, size_y, size_x, freq_z, freq_
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
-                k = modulus_of_vector([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]], 3)
-                E += sqr_of_vector([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]], 3) * k * k
+                k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
+                E += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
 
     return E / (8.0 * math.pi * math.pi * math.pi)
 
@@ -402,7 +390,7 @@ def find_amplitude_of_inertial_waves(start_num, end_num, delta_theta, count_of_t
                     mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
                     for theta_ind in range(0, count_of_theta):
                         if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
-                            A[theta_ind] += sqr_of_vector([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]], 3)
+                            A[theta_ind] += np.sum(np.array([u_wk[omega][ind_z][ind_y][ind_x], v_wk[omega][ind_z][ind_y][ind_x], w_wk[omega][ind_z][ind_y][ind_x]]) ** 2)
         A_w_theta.append(A)
         maximum_of_A.append(np.max(A))
         print("end calculation amplitude in frequency " + str(freq_[omega]))
