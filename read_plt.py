@@ -164,7 +164,7 @@ def get_data_from_file(file_number):
 cells_number_z_new = cells_number_x
 
 # chose time interval
-start_number = 230  # numbers of file
+start_number = 220  # numbers of file
 end_number = 234
 
 # convert 3D coordinates to 1D-index for array x/y/z
@@ -249,7 +249,7 @@ amplitude_wave_vec = modulus_of_vector([cells_number_z_new // 2 - 1, cells_numbe
 # real part of fourier transform spatial velocity vector
 def find_fourier_velocity_vec(file_number):
     x, y, z, p, u_center, v_center, w_center = get_data_from_file(file_number)
-    print("end reading " + str(file_number) + " time itteration")
+    #print("end reading " + str(file_number) + " time itteration")
 
     # fourier image of velocity components
     fourier_u = np.real(fftn(u_center))
@@ -282,14 +282,26 @@ def find_inertial_wave(file_number_array):
     fourier_w = fourier_w[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
     return fourier_u, fourier_v, fourier_w
 
+# maximum search coefficient - part of the array where programm find local maximum. It is searched visually according to the schedule
+max_search_coef = 0.375 
 def find_energy_spectrum_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-    max_energy = np.max(E_i)
-    q_max = np.argmax(E_i) * amplitude_wave_vec / count_of_vec_points
+    max_energy = np.max(E_i[int(len(E_i)*max_search_coef):-1])
+    q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
     full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
     return E_i, max_energy, q_max, full_e
+
+# it's a copy of upper function which added returns: spatial fourier transform of velocity vectors 
+def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
+    fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(file_number)
+    # find E(q) in this file:
+    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
+    max_energy = np.max(E_i[int(len(E_i)*max_search_coef):-1])
+    q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
+    return E_i, max_energy, q_max, full_e, fourier_u, fourier_v, fourier_w
 
 # find the spectral density of the velocity of viscous kinetic energy dissipation per unit volume
 # E(q) = summ(Vk^2 * k^2) / (2*pi)^3, if |k - q| <= 1/2;
@@ -326,7 +338,16 @@ def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
                                                            cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
                                                            count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
-    k_nu = np.argmax(spectrum) * amplitude_wave_vec / count_of_vec_points
+    k_nu = (np.argmax(spectrum[int(len(spectrum)*max_search_coef) :]) + int(len(spectrum)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
+    return spectrum, k_nu, full_velocity
+
+# it's a copy of upper function which added arguments: spatial fourier transform of velocity vectors 
+def find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_, fourier_u, fourier_v, fourier_w):
+    spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
+                                                           cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
+                                                           count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
+    k_nu = (np.argmax(spectrum[int(len(spectrum)*max_search_coef) :]) + int(len(spectrum)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
     full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
     return spectrum, k_nu, full_velocity
 
@@ -349,7 +370,7 @@ def save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_st
     axs.set_title("time = " + str(time))
     axs.plot(np.log10(wave_coord), np.log10(energy_spectrum_array))
     axs.set_ylabel('log(E)')
-    axs.set_xlabel('lengh of wave vector')
+    axs.set_xlabel('log(lengh of wave vector)')
     axs.grid(True)
     plt.savefig('spectrum_time=' + str(time) + '.png')
 
@@ -360,7 +381,7 @@ def save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_d
     axs.set_title("time = " + str(time))
     axs.plot(np.log10(wave_coord), np.log10(spectrum_array))
     axs.set_ylabel('log(epsilon)')
-    axs.set_xlabel('lengh of wave vector')
+    axs.set_xlabel('log(lengh of wave vector)')
     axs.grid(True)
     plt.savefig('spectrum_eps_time=' + str(time) + '.png')
 
@@ -398,12 +419,14 @@ def find_amplitude_of_inertial_waves(start_num, end_num, delta_theta, count_of_t
 
 # cycle according to the time we are interested in
 for i in range(0, end_number - start_number + 1, 1):    
-    energy_sp, maximum_E, Q_max, full_E = find_energy_spectrum_from_file(i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz)
+    energy_sp, maximum_E, Q_max, full_E, fourier_u, fourier_v, fourier_w = find_energy_spectrum_from_file_with_add_return(
+        i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz)
     print("time moment: " + str((i + start_number) * 0.001))
     print("full kinetic energy = " + str(full_E))
     print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
 
-    dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file(i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc)
+    dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(
+        i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc, fourier_u, fourier_v, fourier_w)
     Re = find_posteriori_Reynolds_number(full_E, Q_max)
     print("maximum spectrum of density of viscous dissipation rate = " + str(maximum_nu))
     print("full velocity of viscous kinetic energy dissipation = " + str(full_eps))
@@ -411,8 +434,8 @@ for i in range(0, end_number - start_number + 1, 1):
     save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, (i + start_number) * 0.001)
     save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, (i + start_number) * 0.001)
 
-delta_theta = 0.15
-count_of_theta = 70
+delta_theta = 0.15      # some choosen constant
+count_of_theta = 70     # count of points which divided full angle range
 freq_, A_w_theta, maximum_of_A = find_amplitude_of_inertial_waves(start_number, end_number, delta_theta, count_of_theta)
 theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
 
