@@ -25,6 +25,7 @@ dy = (up_boundary_y - down_boundary_y) / cells_number_y
 dz = (front_boundary_z - rear_boundary_z) / cells_number_z
 
 kinematic_viscosity = 0.01  # table value, a constant for a given environment. 
+OMEGA = 100.0               # angular rotation speed - parameters of the simulated system
 
 def construct_file_path(n):
     path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution\\numerical_solution_'
@@ -340,8 +341,12 @@ def find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(file_
     return spectrum, k_nu, full_velocity
 
 # Re = sqrt(2E)/(nu*k_energy)
-def find_posteriori_Reynolds_number(full_energy, energy_characteristic_wavelength):
+def find_posteriori_Reynolds_number(full_energy, energy_characteristic_wavelength, kinematic_viscosity):
     return math.sqrt(2.0 * full_energy) / (kinematic_viscosity * energy_characteristic_wavelength)
+
+# Ro = ke * sqrt(E/2) / OMEGA 
+def find_posteriori_Rossby_number(full_energy, energy_characteristic_wavelength, angular_rotation_speed):
+    return energy_characteristic_wavelength * math.sqrt(0.5 * full_energy) / angular_rotation_speed
 
 def spherical_coord_from_vec(x, y, z):
     xy = x**2 + y**2
@@ -359,7 +364,7 @@ def save_energy_spectrum(amplitude_wave_vec, max_wave_deviation, count_of_vec_st
     axs.plot(np.log10(wave_coord), np.log10(energy_spectrum_array))
     axs.set_ylabel('log(E)')
     axs.set_xlabel('log(lengh of wave vector)')
-    axs.grid(True)
+    axs.grid(True, linestyle='--')
     plt.savefig('spectrum_time=' + str(time) + '.png')
 
 def save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation, count_of_vec_steps, spectrum_array, time):
@@ -370,7 +375,7 @@ def save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_d
     axs.plot(np.log10(wave_coord), np.log10(spectrum_array))
     axs.set_ylabel('log(epsilon)')
     axs.set_xlabel('log(lengh of wave vector)')
-    axs.grid(True)
+    axs.grid(True, linestyle='--')
     plt.savefig('spectrum_eps_time=' + str(time) + '.png')
 
 # v (w, k) = (u, v, w)[w][kz, ky, kx]
@@ -415,10 +420,12 @@ for i in range(0, end_number - start_number + 1, 1):
 
     dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(
         i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc, fourier_u, fourier_v, fourier_w)
-    Re = find_posteriori_Reynolds_number(full_E, Q_max)
+    Re = find_posteriori_Reynolds_number(full_E, Q_max, kinematic_viscosity)
+    Ro = find_posteriori_Rossby_number(full_E, Q_max, OMEGA)
     print("maximum spectrum of density of viscous dissipation rate = " + str(maximum_nu))
     print("full velocity of viscous kinetic energy dissipation = " + str(full_eps))
     print("posteriori Reynolds number = " + str(Re))
+    print("posteriori Rossby number = " + str(Ro))
     save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, (i + start_number) * 0.001)
     save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, (i + start_number) * 0.001)
 
