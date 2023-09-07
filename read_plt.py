@@ -5,12 +5,12 @@ from scipy.fft import fftn, fftfreq
 import math
 
 # info from parameters.dat file:
-left_boundary_x =   -3.1415
-right_boundary_x =  3.1415
-down_boundary_y =   -3.1415
-up_boundary_y =     3.1415
-rear_boundary_z =   -3.1415
-front_boundary_z =  3.1415
+left_boundary_x =   -1.0*math.pi
+right_boundary_x =  math.pi
+down_boundary_y =   -1.0*math.pi
+up_boundary_y =     math.pi
+rear_boundary_z =   -1.0*math.pi
+front_boundary_z =  math.pi
 cells_number_x = 100
 cells_number_y = 100
 cells_number_z = 400
@@ -28,6 +28,11 @@ kinematic_viscosity = 0.01  # table value, a constant for a given environment.
 OMEGA = 100.0               # angular rotation speed - parameters of the simulated system
 max_wave_deviation_in_energy_calc = 0.25     # constants in this calculation
 max_wave_deviation_in_dencity_velocity_dissipation_calc = 0.5
+
+cells_number_z_new = cells_number_x
+dx = (right_boundary_x - left_boundary_x) / cells_number_x
+dy = (up_boundary_y - down_boundary_y) / cells_number_y
+dz_new = (front_boundary_z - rear_boundary_z) / cells_number_z_new
 
 def construct_file_path(n):
     path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution\\numerical_solution_'
@@ -163,7 +168,6 @@ def get_data_from_file(file_number):
         print("something doesn't work")
     file.close()
     return x, y, z, p, u, v, w
-cells_number_z_new = cells_number_x
 
 # find the energy spectrum at the choosen moment of time
 # E(q) = summ(Vk^2) / (2*pi)^3, if |k - q| <= 1/4;
@@ -177,24 +181,19 @@ def find_energy_spectrum(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z
             for ind_x in range(0, size_x):
                 k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
                 i = int((k + max_wave_deviation_) * count_of_cells / amplitude)
-                E = np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2)
+                E = np.sum(np.square(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]])))
                 if i >= count_of_cells:
                     i = count_of_cells - 1
                 while abs(k - i * amplitude / count_of_cells) <= max_wave_deviation_ and i >= 0:
                     spectrum[i] += E
                     i -= 1
 
-    return spectrum / (8.0 * math.pi * math.pi * math.pi)
+    return spectrum / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 # find full kinetic energy in part of volume
-def find_full_energy(u, v, w, size_z, size_y, size_x):
-    E = 0.0
-    for ind_z in range(0, size_z):
-        for ind_y in range(0, size_y):
-            for ind_x in range(0, size_x):
-                E += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2)
-
-    return E / (16.0 * math.pi * math.pi * math.pi)
+def find_full_energy(u, v, w):
+    E_without_koeff = np.sum(np.square(u) + np.square(v) + np.square(w)) * dx * dy * dz_new
+    return E_without_koeff / (2.0 * (right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 # calculation of wave vectors arrays along coordinate axes
 kx = np.arange(cells_number_x // 2)
@@ -267,20 +266,18 @@ def find_energy_spectrum_from_file(file_number, count_of_vec_points, amplitude_w
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-    max_energy = np.max(E_i[int(len(E_i)*max_search_coef):-1])
     q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
-    full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
-    return E_i, max_energy, q_max, full_e
+    full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
+    return E_i, q_max, full_e
 
 # it's a copy of upper function which added returns: spatial fourier transform of velocity vectors 
 def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-    max_energy = np.max(E_i[int(len(E_i)*max_search_coef):-1])
     q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
-    full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
-    return E_i, max_energy, q_max, full_e, fourier_u, fourier_v, fourier_w
+    full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
+    return E_i, q_max, full_e, fourier_u, fourier_v, fourier_w
 
 # find the spectral density of the velocity of viscous kinetic energy dissipation per unit volume
 # E(q) = summ(Vk^2 * k^2) / (2*pi)^3, if |k - q| <= 1/2;
@@ -300,17 +297,20 @@ def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x,
                     spectrum[i] += E
                     i -= 1
 
-    return spectrum / (8.0 * math.pi * math.pi * math.pi)
+    return spectrum / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 def find_full_rate_of_dissipation(u, v, w, size_z, size_y, size_x, freq_z, freq_y, freq_x):
-    E = 0.0
+    #v_sqr_vector_array = np.square(u) + np.square(v) + np.square(w)
+    #k_sqr_vector_array = ...
+    #E_without_koeff = np.sum(v_sqr_vector_array * k_sqr_vector_array)
+    E_without_koeff = 0.0
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
             for ind_x in range(0, size_x):
                 k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
-                E += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
+                E_without_koeff += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
 
-    return E / (8.0 * math.pi * math.pi * math.pi)
+    return E_without_koeff * dx * dy * dz_new / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
@@ -435,17 +435,17 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
     u_array = []
     v_array = []
     w_array = []
+
     for i in np.arange(start_file_number, end_file_number+1, 1, dtype=int):
         x, y, z, p, u_center, v_center, w_center = get_data_from_file(i)
         fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(u_center, v_center, w_center)
         energy_sp = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_steps, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-        max_energy = np.max(energy_sp[int(len(energy_sp)*max_search_coef):-1])
         q_max = (np.argmax(energy_sp[int(len(energy_sp)*max_search_coef) :]) + int(len(energy_sp)*max_search_coef)) * amplitude_wave_vec / count_of_vec_steps
-        full_e = find_full_energy(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)
+        full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
 
         print("time moment: " + str(i * 0.001))
         print("full kinetic energy = " + str(full_e))
-        print("maximum spectrum of energy = " + str(max_energy) + " in wave vector = " + str(q_max))
+        print("maximum spectrum of energy in wave vector = " + str(q_max))
 
         dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(
             count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc, fourier_u, fourier_v, fourier_w)
@@ -475,11 +475,11 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
 """
 # cycle according to the time we are interested in
 for i in range(0, end_number - start_number + 1, 1):    
-    energy_sp, maximum_E, Q_max, full_E, fourier_u, fourier_v, fourier_w = find_energy_spectrum_from_file_with_add_return(
+    energy_sp, Q_max, full_E, fourier_u, fourier_v, fourier_w = find_energy_spectrum_from_file_with_add_return(
         i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz)
     print("time moment: " + str((i + start_number) * 0.001))
     print("full kinetic energy = " + str(full_E))
-    print("maximum spectrum of energy = " + str(maximum_E) + " in wave vector = " + str(Q_max))
+    print("maximum spectrum of energy in wave vector = " + str(Q_max))
 
     dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(
         count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc, fourier_u, fourier_v, fourier_w)
