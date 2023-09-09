@@ -34,6 +34,9 @@ dx = (right_boundary_x - left_boundary_x) / cells_number_x
 dy = (up_boundary_y - down_boundary_y) / cells_number_y
 dz_new = (front_boundary_z - rear_boundary_z) / cells_number_z_new
 
+# name of txt file, which save information about Reynolds and Rossby number, characteristic wave vector, energy and dissipation
+txt_file_name = "system_parameters.txt"
+
 def construct_file_path(n):
     path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution\\numerical_solution_'
     #path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution2\\numerical_solution_'
@@ -433,7 +436,11 @@ def find_amplitude_of_inertial_waves_from_arrays(number_of_files, u_array, v_arr
 
 # Function which find an energy spectrum and a rate of viscous kinetic energy dissipation and plot the graphs
 # then find amplitude of inertial waves. Returns array with amplitude of inertial waves in relation to frequency and angle
-def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_file_number, bool_will_save_spectrum, count_of_vec_steps, count_of_theta, delta_theta):
+def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_file_number, bool_will_save_spectrum, count_of_vec_steps, count_of_theta, delta_theta, bool_save_txt_info):
+    if bool_save_txt_info == True:
+        file = open(txt_file_name, "w+")
+        file.close()
+
     u_array = []
     v_array = []
     w_array = []
@@ -463,6 +470,16 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
         if bool_will_save_spectrum == True:
             save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, i * time_step)
             save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, i * time_step)
+        if bool_save_txt_info == True:
+            file = open(txt_file_name, "a+")
+            file.write("time moment: " + str(i * time_step) + "\n")
+            file.write("full kinetic energy = " + str(full_e) + "\n")
+            file.write("maximum spectrum of energy in wave vector = " + str(q_max) + "\n")
+            file.write("maximum spectrum of density of viscous dissipation rate = " + str(maximum_nu) + "\n")
+            file.write("full velocity of viscous kinetic energy dissipation = " + str(full_eps) + "\n")
+            file.write("posteriori Reynolds number = " + str(Re) + "\n")
+            file.write("posteriori Rossby number = " + str(Ro) + "\n")
+            file.close()
 
         u_array.append(u_center)
         v_array.append(v_center)
@@ -503,7 +520,7 @@ count_of_theta = 70         # count of points which divided full angle range
 count_of_vec_steps = 200    # wave vector discretization, wave vector discretization
 
 freq_, A_w_theta, maximum_of_A, theta_array = find_spectrums_and_ampl_of_inertial_waves_from_file(
-    start_number, end_number, False, count_of_vec_steps, count_of_theta, delta_theta)
+    start_number, end_number, False, count_of_vec_steps, count_of_theta, delta_theta, True)
 
 # draw inertial waves
 fig, ax = plt.subplots()
