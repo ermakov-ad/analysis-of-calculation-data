@@ -264,13 +264,11 @@ def find_inertial_wave_from_arrays(number_of_files, u_center_arr, v_center_arr, 
     time_period = number_of_files * time_step
     return fourier_u / time_period, fourier_v / time_period, fourier_w / time_period
 
-# maximum search coefficient - part of the array where programm find local maximum. It is searched visually according to the schedule
-max_search_coef = 0.375 
 def find_energy_spectrum_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-    q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    q_max = (np.argmax(E_i)) * amplitude_wave_vec / count_of_vec_points
     full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
     return E_i, q_max, full_e
 
@@ -279,7 +277,7 @@ def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_poi
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
     E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-    q_max = (np.argmax(E_i[int(len(E_i)*max_search_coef) :]) + int(len(E_i)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    q_max = (np.argmax(E_i)) * amplitude_wave_vec / count_of_vec_points
     full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
     return E_i, q_max, full_e, fourier_u, fourier_v, fourier_w
 
@@ -321,7 +319,7 @@ def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
                                                            cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
                                                            count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
-    k_nu = (np.argmax(spectrum[int(len(spectrum)*max_search_coef) :]) + int(len(spectrum)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
     full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
     return spectrum, k_nu, full_velocity
 
@@ -330,7 +328,7 @@ def find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(count
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
                                                            cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
                                                            count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
-    k_nu = (np.argmax(spectrum[int(len(spectrum)*max_search_coef) :]) + int(len(spectrum)*max_search_coef)) * amplitude_wave_vec / count_of_vec_points
+    k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
     full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
     return spectrum, k_nu, full_velocity
 
@@ -444,8 +442,9 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
         x, y, z, p, u_center, v_center, w_center = get_data_from_file(i)
         fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(u_center, v_center, w_center)
         energy_sp = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_steps, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
-        q_max = (np.argmax(energy_sp[int(len(energy_sp)*max_search_coef) :]) + int(len(energy_sp)*max_search_coef)) * amplitude_wave_vec / count_of_vec_steps
-        full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
+        q_max = (np.argmax(energy_sp)) * amplitude_wave_vec / count_of_vec_steps
+        #full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
+        full_e = find_full_energy(u_center, v_center, w_center)
 
         print("time moment: " + str(i * time_step))
         print("full kinetic energy = " + str(full_e))
