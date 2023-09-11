@@ -492,47 +492,20 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
 
     return freq_, A_w_theta, maximum_of_A, theta_array
 
+# function which draw and save picture with inertial waves
+A_w_theta_file_name = "Amplitude_(theta_frequency)_" + str(end_number - start_number + 1) + "_files.png"
+def save_amplitude_of_inertial_waves(amplitude, angle_ticks_array, frequency_ticks_array, file_name):
+    fig, ax = plt.subplots()
+    fig.suptitle("Amplitude(frequency, angle)", fontsize=20)
+    ax.imshow(amplitude)
+    ax.set_xlabel("angle (theta), rad")
+    ax.set_ylabel("frequency")
+    ax.set_xticks(np.arange(len(angle_ticks_array)//5), labels=np.round(angle_ticks_array[::5], decimals=1))
+    ax.set_yticks(np.arange(len(frequency_ticks_array)//5), labels=np.round(frequency_ticks_array[::5], decimals=1))
+    #plt.xticks(rotation=45)
+    plt.savefig(file_name)
+
 """
-# cycle according to the time we are interested in
-for i in range(0, end_number - start_number + 1, 1):    
-    energy_sp, Q_max, full_E, fourier_u, fourier_v, fourier_w = find_energy_spectrum_from_file_with_add_return(
-        i + start_number, count_of_vec_steps, amplitude_wave_vec, kx, ky, kz)
-    print("time moment: " + str((i + start_number) * time_step))
-    print("full kinetic energy = " + str(full_E))
-    print("maximum spectrum of energy in wave vector = " + str(Q_max))
-
-    dencity_velocity_sp, maximum_nu, full_eps = find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(
-        count_of_vec_steps, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_in_dencity_velocity_dissipation_calc, fourier_u, fourier_v, fourier_w)
-    Re = find_posteriori_Reynolds_number(full_E, Q_max, kinematic_viscosity)
-    Ro = find_posteriori_Rossby_number(full_E, Q_max, OMEGA)
-    print("maximum spectrum of density of viscous dissipation rate = " + str(maximum_nu))
-    print("full velocity of viscous kinetic energy dissipation = " + str(full_eps))
-    print("posteriori Reynolds number = " + str(Re))
-    print("posteriori Rossby number = " + str(Ro))
-    save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, (i + start_number) * time_step)
-    save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, (i + start_number) * time_step)
-
-freq_, A_w_theta, maximum_of_A, theta_array = find_amplitude_of_inertial_waves_from_files(start_number, end_number, delta_theta, count_of_theta)
-"""
-
-delta_theta = 0.15          # some choosen constant
-count_of_theta = 70         # count of points which divided full angle range
-count_of_vec_steps = 200    # wave vector discretization, wave vector discretization
-
-freq_, A_w_theta, maximum_of_A, theta_array = find_spectrums_and_ampl_of_inertial_waves_from_file(
-    start_number, end_number, False, count_of_vec_steps, count_of_theta, delta_theta, True)
-
-# draw inertial waves
-fig, ax = plt.subplots()
-ax.set_title("A(frequency, angle)")
-ax.imshow(A_w_theta)
-ax.set_xlabel("angle (theta), rad")
-ax.set_ylabel("frequency")
-ax.set_xticks(np.arange(count_of_theta), labels=np.round(theta_array, decimals=1))
-ax.set_yticks(np.arange(len(freq_)), labels=np.round(freq_, decimals=1))
-plt.xticks(rotation=45)
-plt.show()
-
 fig, ax = plt.subplots()
 ax.set_title("maximum of A(frequency, angle)")
 ax.plot(np.arange(len(maximum_of_A)), maximum_of_A)
@@ -542,4 +515,13 @@ ax.set_ylabel("Amplitude")
 ax.set_xticks(np.arange(len(freq_)), labels=np.round(freq_, decimals=1))
 ax.grid(True, linestyle='--')
 plt.xticks(rotation=45)
-plt.show()
+plt.show()"""
+
+delta_theta = 0.15          # some choosen constant
+count_of_theta = 70         # count of points which divided full angle range
+count_of_vec_steps = 200    # wave vector discretization, wave vector discretization
+
+freq_, A_w_theta, maximum_of_A, theta_array = find_spectrums_and_ampl_of_inertial_waves_from_file(
+    start_number, end_number, False, count_of_vec_steps, count_of_theta, delta_theta, True)
+
+save_amplitude_of_inertial_waves(A_w_theta, theta_array, freq_, A_w_theta_file_name)
