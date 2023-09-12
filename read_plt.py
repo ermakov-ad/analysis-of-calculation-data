@@ -203,11 +203,16 @@ kx = np.arange(cells_number_x // 2)
 ky = np.arange(cells_number_y // 2)
 kz = np.arange(cells_number_z_new // 2)
 
+kx_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), kz)
+ky_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), ky.reshape((cells_number_y // 2, 1)))
+kz_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), kx.reshape((cells_number_z_new // 2, 1, 1)))
+# 3d array with square of wave vector in every points
+k_sqr_vector_array = np.square(kx_3d_array) + np.square(ky_3d_array) + np.square(kz_3d_array)
+
 amplitude_wave_vec = np.linalg.norm(np.array([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1]))
 
 # real part of fourier transform spatial velocity vector
 # function return three 3-D arrays with components of vector vk
-# 
 def find_fourier_velocity_vec_from_file(file_number):
     x, y, z, p, u_center, v_center, w_center = get_data_from_file(file_number)
     #print("end reading " + str(file_number) + " time itteration")
@@ -217,9 +222,9 @@ def find_fourier_velocity_vec_from_file(file_number):
     fourier_v = np.real(fftn(v_center))
     fourier_w = np.real(fftn(w_center))
     
-    fourier_u = fourier_u[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_v = fourier_v[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_w = fourier_w[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_u = fourier_u[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_v = fourier_v[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_w = fourier_w[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u / (math.pi**1.5), fourier_v / (math.pi**1.5), fourier_w / (math.pi**1.5)
 
@@ -228,9 +233,9 @@ def find_fourier_velocity_vec(u_center, v_center, w_center):
     fourier_v = np.real(fftn(v_center))
     fourier_w = np.real(fftn(w_center))
     
-    fourier_u = fourier_u[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_v = fourier_v[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_w = fourier_w[:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_u = fourier_u[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_v = fourier_v[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_w = fourier_w[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u / (math.pi**1.5), fourier_v / (math.pi**1.5), fourier_w / (math.pi**1.5)
 
@@ -251,9 +256,9 @@ def find_inertial_wave_from_files(file_number_array):
 
     l = len(file_number_array)
     time_period = l * time_step
-    fourier_u = fourier_u[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_v = fourier_v[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_w = fourier_w[:l // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_u = fourier_u[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_v = fourier_v[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_w = fourier_w[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
     return fourier_u / time_period, fourier_v / time_period, fourier_w / time_period
 
 def find_inertial_wave_from_arrays(number_of_files, u_center_arr, v_center_arr, w_center_arr):
@@ -261,9 +266,9 @@ def find_inertial_wave_from_arrays(number_of_files, u_center_arr, v_center_arr, 
     fourier_v = np.real(fftn(v_center_arr))
     fourier_w = np.real(fftn(w_center_arr))
 
-    fourier_u = fourier_u[:number_of_files // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_v = fourier_v[:number_of_files // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
-    fourier_w = fourier_w[:number_of_files // 2][:cells_number_z_new // 2][:cells_number_y // 2][:cells_number_x // 2]
+    fourier_u = fourier_u[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_v = fourier_v[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_w = fourier_w[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
     time_period = number_of_files * time_step
     return fourier_u / time_period, fourier_v / time_period, fourier_w / time_period
 
@@ -288,7 +293,7 @@ def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_poi
 # E(q) = summ(Vk^2 * k^2) / (2*pi)^3, if |k - q| <= 1/2;
 # k = sqrt(kx*kx + ky*ky + kz*kz)
 # Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed;
-def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x, count_of_cells, freq_x, freq_y, freq_z, amplitude, max_wave_deviation_):
+def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
     spectrum = np.zeros(count_of_cells)
     for ind_z in range(0, size_z):
         for ind_y in range(0, size_y):
@@ -304,35 +309,27 @@ def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x,
 
     return spectrum / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
-def find_full_rate_of_dissipation(u, v, w, size_z, size_y, size_x, freq_z, freq_y, freq_x):
-    #v_sqr_vector_array = np.square(u) + np.square(v) + np.square(w)
-    #k_sqr_vector_array = ...?
-    #E_without_koeff = np.sum(v_sqr_vector_array * k_sqr_vector_array)
-    E_without_koeff = 0.0
-    for ind_z in range(0, size_z):
-        for ind_y in range(0, size_y):
-            for ind_x in range(0, size_x):
-                k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
-                E_without_koeff += np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
-
+def find_full_rate_of_dissipation(u, v, w):
+    v_sqr_vector_array = np.square(u) + np.square(v) + np.square(w)
+    E_without_koeff = np.sum(v_sqr_vector_array * k_sqr_vector_array)
     return E_without_koeff * dx * dy * dz_new / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
                                                            cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
-                                                           count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
+                                                           count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
     k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
-    full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
+    full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w)
     return spectrum, k_nu, full_velocity
 
 # it's a copy of upper function which added arguments: spatial fourier transform of velocity vectors 
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_, fourier_u, fourier_v, fourier_w):
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
                                                            cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
-                                                           count_of_vec_points, kx, ky, kz, amplitude_wave_vec, max_wave_deviation_)
+                                                           count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
     k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
-    full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, kz, ky, kx)
+    full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w)
     return spectrum, k_nu, full_velocity
 
 # Re = sqrt(2E)/(nu*k_energy)
@@ -500,9 +497,9 @@ def save_amplitude_of_inertial_waves(amplitude, angle_ticks_array, frequency_tic
     ax.imshow(amplitude)
     ax.set_xlabel("angle (theta), rad")
     ax.set_ylabel("frequency")
-    ax.set_xticks(np.arange(len(angle_ticks_array)//5), labels=np.round(angle_ticks_array[::5], decimals=1))
-    ax.set_yticks(np.arange(len(frequency_ticks_array)//5), labels=np.round(frequency_ticks_array[::5], decimals=1))
-    #plt.xticks(rotation=45)
+    ax.set_xticks(np.arange(len(angle_ticks_array)), labels=np.round(angle_ticks_array, decimals=1))
+    ax.set_yticks(np.arange(len(frequency_ticks_array)), labels=np.round(frequency_ticks_array, decimals=1))
+    plt.xticks(rotation=45)
     plt.savefig(file_name)
 
 """
