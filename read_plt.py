@@ -3,6 +3,7 @@ import numpy as np
 import struct
 from scipy.fft import fftn, fftfreq
 import math
+from scipy.signal import resample
 
 # info from parameters.dat file:
 left_boundary_x =   -1.0*math.pi
@@ -29,10 +30,10 @@ OMEGA = 10.0                # angular rotation speed - parameters of the simulat
 max_wave_deviation_in_energy_calc = 0.25     # constants in this calculation
 max_wave_deviation_in_dencity_velocity_dissipation_calc = 0.5
 
-cells_number_z_new = cells_number_x
-dx = (right_boundary_x - left_boundary_x) / cells_number_x
-dy = (up_boundary_y - down_boundary_y) / cells_number_y
-dz_new = (front_boundary_z - rear_boundary_z) / cells_number_z_new
+min_cells_number = min([cells_number_x, cells_number_y, cells_number_z])
+dx = (right_boundary_x - left_boundary_x) / min_cells_number
+dy = (up_boundary_y - down_boundary_y) / min_cells_number
+dz_new = (front_boundary_z - rear_boundary_z) / min_cells_number
 
 # name of txt file, which save information about Reynolds and Rossby number, characteristic wave vector, energy and dissipation
 txt_file_name = "system_parameters.txt"
@@ -49,6 +50,8 @@ def construct_file_path(n):
 # return: 
 # x, y, z = np.array[z][y][x]; size = (cells_z + 1)*(cells_y + 1)*(cells_x + 1)
 # p, u, v, w = np.array[z][y][x]; size = cells_z * cells_y * cells_x
+# in practice, programm work with cubic arrays
+# so new arrays size = min_cells_number * min_cells_number * min_cells_number, which function returned
 def get_data_from_file(file_number):
     file = open(construct_file_path(file_number), 'rb')
     # skip header
@@ -114,13 +117,12 @@ def get_data_from_file(file_number):
                 value = file.read(8)
                 p[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
     # for 400 -> 100:
-    for it in range(0, cells_number_x):
-        p_new[it] = (9*p[4*it + 1] + 9*p[4*it + 2] - p[4*it + 0] - p[4*it + 3]) / 16
+    #for it in range(0, cells_number_x):
+    #    p_new[it] = (9*p[4*it + 1] + 9*p[4*it + 2] - p[4*it + 0] - p[4*it + 3]) / 16
     # for 500 -> 200:
     #for it in range(0, cells_number_x, 2):
     #    p_new[it] = 415.0*p[5*it//2 + 0]/256.0 - 635.0*p[5*it//2 + 1]/128.0 + 141.0*p[5*it//2 + 2]/16.0 - 765.0*p[5*it//2 + 3]/128 + 385.0*p[5*it//2 + 4]/256.0
     #    p_new[it + 1] = 385.0*p[5*it//2 + 0]/256.0 - 765.0*p[5*it//2 + 1]/128.0 + 141.0*p[5*it//2 + 2]/16.0 - 635.0*p[5*it//2 + 3]/128 + 415.0*p[5*it//2 + 4]/256.0
-    p = p_new
 
     for z_ind in range(0, cells_number_z):
         for y_ind in range(0, cells_number_y):
@@ -128,13 +130,12 @@ def get_data_from_file(file_number):
                 value = file.read(8)
                 u[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
     # for 400 -> 100:
-    for it in range(0, cells_number_x):
-        u_new[it] = (9*u[4*it + 1] + 9*u[4*it + 2] - u[4*it + 0] - u[4*it + 3]) / 16
+    #for it in range(0, cells_number_x):
+    #    u_new[it] = (9*u[4*it + 1] + 9*u[4*it + 2] - u[4*it + 0] - u[4*it + 3]) / 16
     # for 500 -> 200:
     #for it in range(0, cells_number_x, 2):
     #    u_new[it] = 415.0*u[5*it//2 + 0]/256.0 - 635.0*u[5*it//2 + 1]/128.0 + 141.0*u[5*it//2 + 2]/16.0 - 765.0*u[5*it//2 + 3]/128 + 385.0*u[5*it//2 + 4]/256.0
     #    u_new[it + 1] = 385.0*u[5*it//2 + 0]/256.0 - 765.0*u[5*it//2 + 1]/128.0 + 141.0*u[5*it//2 + 2]/16.0 - 635.0*u[5*it//2 + 3]/128 + 415.0*u[5*it//2 + 4]/256.0
-    u = u_new
 
     for z_ind in range(0, cells_number_z):
         for y_ind in range(0, cells_number_y):
@@ -142,13 +143,12 @@ def get_data_from_file(file_number):
                 value = file.read(8)
                 v[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
     # for 400 -> 100:
-    for it in range(0, cells_number_x):
-        v_new[it] = (9*v[4*it + 1] + 9*v[4*it + 2] - v[4*it + 0] - v[4*it + 3]) / 16
+    #for it in range(0, cells_number_x):
+    #    v_new[it] = (9*v[4*it + 1] + 9*v[4*it + 2] - v[4*it + 0] - v[4*it + 3]) / 16
     # for 500 -> 200:
     #for it in range(0, cells_number_x, 2):
     #    v_new[it] = 415.0*v[5*it//2 + 0]/256.0 - 635.0*v[5*it//2 + 1]/128.0 + 141.0*v[5*it//2 + 2]/16.0 - 765.0*v[5*it//2 + 3]/128 + 385.0*v[5*it//2 + 4]/256.0
     #    v_new[it + 1] = 385.0*v[5*it//2 + 0]/256.0 - 765.0*v[5*it//2 + 1]/128.0 + 141.0*v[5*it//2 + 2]/16.0 - 635.0*v[5*it//2 + 3]/128 + 415.0*v[5*it//2 + 4]/256.0
-    v = v_new
 
     for z_ind in range(0, cells_number_z):
         for y_ind in range(0, cells_number_y):
@@ -156,12 +156,34 @@ def get_data_from_file(file_number):
                 value = file.read(8)
                 w[z_ind][y_ind][x_ind] = float(struct.unpack('<d', value)[0])
     # for 400 -> 100:
-    for it in range(0, cells_number_x):
-        w_new[it] = (9*w[4*it + 1] + 9*w[4*it + 2] - w[4*it + 0] - w[4*it + 3]) / 16
+    #for it in range(0, cells_number_x):
+    #    w_new[it] = (9*w[4*it + 1] + 9*w[4*it + 2] - w[4*it + 0] - w[4*it + 3]) / 16
     # for 500 -> 200:
     #for it in range(0, cells_number_x, 2):
     #    w_new[it] = 415.0*w[5*it//2 + 0]/256.0 - 635.0*w[5*it//2 + 1]/128.0 + 141.0*w[5*it//2 + 2]/16.0 - 765.0*w[5*it//2 + 3]/128 + 385.0*w[5*it//2 + 4]/256.0
     #    w_new[it + 1] = 385.0*w[5*it//2 + 0]/256.0 - 765.0*w[5*it//2 + 1]/128.0 + 141.0*w[5*it//2 + 2]/16.0 - 635.0*w[5*it//2 + 3]/128 + 415.0*w[5*it//2 + 4]/256.0
+
+    # resampling from z axis
+    if cells_number_z > min_cells_number:
+        p_new = resample(p, min_cells_number)
+        u_new = resample(u, min_cells_number)
+        v_new = resample(v, min_cells_number)
+        w_new = resample(w, min_cells_number)
+    # resampling from y axis, along the z axis, the size of array is already correct
+    if cells_number_y > min_cells_number:
+        p_new[:] = resample(p[:], min_cells_number)
+        u_new[:] = resample(u[:], min_cells_number)
+        v_new[:] = resample(v[:], min_cells_number)
+        w_new[:] = resample(w[:], min_cells_number)
+    # resampling from x axis, along the z and y axes, the size of array is already correct
+    if cells_number_x > min_cells_number:
+        p_new[: , :] = resample(p[: , :], min_cells_number)
+        u_new[: , :] = resample(u[: , :], min_cells_number)
+        v_new[: , :] = resample(v[: , :], min_cells_number)
+        w_new[: , :] = resample(w[: , :], min_cells_number)
+    p = p_new
+    u = u_new
+    v = v_new
     w = w_new
 
     mistake = file.read()
@@ -177,11 +199,11 @@ def get_data_from_file(file_number):
 # k = sqrt(kx*kx + ky*ky + kz*kz)
 # Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed; 
 # q - array of modulus of vectors 
-def find_energy_spectrum(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
+def find_energy_spectrum(u, v, w, size_of_array, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
     spectrum = np.zeros(count_of_cells)
-    for ind_z in range(0, size_z):
-        for ind_y in range(0, size_y):
-            for ind_x in range(0, size_x):
+    for ind_z in range(0, size_of_array):
+        for ind_y in range(0, size_of_array):
+            for ind_x in range(0, size_of_array):
                 k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
                 i = int((k + max_wave_deviation_) * count_of_cells / amplitude)
                 E = np.sum(np.square(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]])))
@@ -199,17 +221,17 @@ def find_full_energy(u, v, w):
     return E_without_koeff / (2.0 * (right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 # calculation of wave vectors arrays along coordinate axes
-kx = np.arange(cells_number_x // 2)
-ky = np.arange(cells_number_y // 2)
-kz = np.arange(cells_number_z_new // 2)
+kx = np.arange(min_cells_number // 2)
+ky = np.arange(min_cells_number // 2)
+kz = np.arange(min_cells_number // 2)
 
-kx_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), kz)
-ky_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), ky.reshape((cells_number_y // 2, 1)))
-kz_3d_array = np.multiply(np.ones((cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2)), kx.reshape((cells_number_z_new // 2, 1, 1)))
+kx_3d_array = np.multiply(np.ones((min_cells_number // 2, min_cells_number // 2, min_cells_number // 2)), kz)
+ky_3d_array = np.multiply(np.ones((min_cells_number // 2, min_cells_number // 2, min_cells_number // 2)), ky.reshape((min_cells_number // 2, 1)))
+kz_3d_array = np.multiply(np.ones((min_cells_number // 2, min_cells_number // 2, min_cells_number // 2)), kx.reshape((min_cells_number // 2, 1, 1)))
 # 3d array with square of wave vector in every points
 k_sqr_vector_array = np.square(kx_3d_array) + np.square(ky_3d_array) + np.square(kz_3d_array)
 
-amplitude_wave_vec = np.linalg.norm(np.array([cells_number_z_new // 2 - 1, cells_number_y // 2 - 1, cells_number_x // 2 - 1]))
+amplitude_wave_vec = np.linalg.norm(np.array([min_cells_number // 2 - 1, min_cells_number // 2 - 1, min_cells_number // 2 - 1]))
 
 # real part of fourier transform spatial velocity vector
 # function return three 3-D arrays with components of vector vk
@@ -222,9 +244,9 @@ def find_fourier_velocity_vec_from_file(file_number):
     fourier_v = np.real(fftn(v_center))
     fourier_w = np.real(fftn(w_center))
     
-    fourier_u = fourier_u[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_v = fourier_v[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_w = fourier_w[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_u = fourier_u[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_v = fourier_v[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_w = fourier_w[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u / (math.pi**1.5), fourier_v / (math.pi**1.5), fourier_w / (math.pi**1.5)
 
@@ -233,9 +255,9 @@ def find_fourier_velocity_vec(u_center, v_center, w_center):
     fourier_v = np.real(fftn(v_center))
     fourier_w = np.real(fftn(w_center))
     
-    fourier_u = fourier_u[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_v = fourier_v[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_w = fourier_w[:cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_u = fourier_u[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_v = fourier_v[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_w = fourier_w[:min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
     # vector velocity(k) = [fourier_u, fourier_v, fourier_w]
     return fourier_u / (math.pi**1.5), fourier_v / (math.pi**1.5), fourier_w / (math.pi**1.5)
 
@@ -256,9 +278,9 @@ def find_inertial_wave_from_files(file_number_array):
 
     l = len(file_number_array)
     time_period = l * time_step
-    fourier_u = fourier_u[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_v = fourier_v[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_w = fourier_w[:l//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_u = fourier_u[:l//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_v = fourier_v[:l//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_w = fourier_w[:l//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
     return fourier_u / time_period, fourier_v / time_period, fourier_w / time_period
 
 def find_inertial_wave_from_arrays(number_of_files, u_center_arr, v_center_arr, w_center_arr):
@@ -266,16 +288,16 @@ def find_inertial_wave_from_arrays(number_of_files, u_center_arr, v_center_arr, 
     fourier_v = np.real(fftn(v_center_arr))
     fourier_w = np.real(fftn(w_center_arr))
 
-    fourier_u = fourier_u[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_v = fourier_v[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
-    fourier_w = fourier_w[:number_of_files//2, :cells_number_z_new//2, :cells_number_y//2, :cells_number_x//2]
+    fourier_u = fourier_u[:number_of_files//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_v = fourier_v[:number_of_files//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
+    fourier_w = fourier_w[:number_of_files//2, :min_cells_number//2, :min_cells_number//2, :min_cells_number//2]
     time_period = number_of_files * time_step
     return fourier_u / time_period, fourier_v / time_period, fourier_w / time_period
 
 def find_energy_spectrum_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
-    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
+    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, min_cells_number // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
     q_max = (np.argmax(E_i)) * amplitude_wave_vec / count_of_vec_points
     full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
     return E_i, q_max, full_e
@@ -284,7 +306,7 @@ def find_energy_spectrum_from_file(file_number, count_of_vec_points, amplitude_w
 def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     # find E(q) in this file:
-    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
+    E_i = find_energy_spectrum(fourier_u, fourier_v, fourier_w, min_cells_number // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
     q_max = (np.argmax(E_i)) * amplitude_wave_vec / count_of_vec_points
     full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
     return E_i, q_max, full_e, fourier_u, fourier_v, fourier_w
@@ -293,11 +315,11 @@ def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_poi
 # E(q) = summ(Vk^2 * k^2) / (2*pi)^3, if |k - q| <= 1/2;
 # k = sqrt(kx*kx + ky*ky + kz*kz)
 # Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed;
-def spectral_density_of_velocity_of_dissipation(u, v, w, size_z, size_y, size_x, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
+def spectral_density_of_velocity_of_dissipation(u, v, w, size_of_array, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
     spectrum = np.zeros(count_of_cells)
-    for ind_z in range(0, size_z):
-        for ind_y in range(0, size_y):
-            for ind_x in range(0, size_x):
+    for ind_z in range(0, size_of_array):
+        for ind_y in range(0, size_of_array):
+            for ind_x in range(0, size_of_array):
                 k = np.linalg.norm(np.array([freq_z[ind_z], freq_y[ind_y], freq_x[ind_x]]))
                 i = int((k + max_wave_deviation_) * count_of_cells / amplitude)
                 E = np.sum(np.array([u[ind_z][ind_y][ind_x], v[ind_z][ind_y][ind_x], w[ind_z][ind_y][ind_x]]) ** 2) * k * k
@@ -317,8 +339,7 @@ def find_full_rate_of_dissipation(u, v, w):
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
-                                                           cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
-                                                           count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
+                                                           min_cells_number // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
     k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
     full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w)
     return spectrum, k_nu, full_velocity
@@ -326,8 +347,7 @@ def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count
 # it's a copy of upper function which added arguments: spatial fourier transform of velocity vectors 
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file_with_add_arg(count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_, fourier_u, fourier_v, fourier_w):
     spectrum = spectral_density_of_velocity_of_dissipation(fourier_u, fourier_v, fourier_w,
-                                                           cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, 
-                                                           count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
+                                                           min_cells_number // 2, count_of_vec_points, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_)
     k_nu = (np.argmax(spectrum)) * amplitude_wave_vec / count_of_vec_points
     full_velocity = find_full_rate_of_dissipation(fourier_u, fourier_v, fourier_w)
     return spectrum, k_nu, full_velocity
@@ -380,9 +400,9 @@ def find_amplitude_of_inertial_waves_from_files(start_num, end_num, delta_theta,
     theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
     for omega in range(0, l // 2):
         A = np.zeros(count_of_theta)
-        for ind_z in range(0, cells_number_z_new // 2):
-            for ind_y in range(0, cells_number_y // 2):
-                for ind_x in range(0, cells_number_x // 2):
+        for ind_z in range(0, min_cells_number // 2):
+            for ind_y in range(0, min_cells_number // 2):
+                for ind_x in range(0, min_cells_number // 2):
                     mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
                     for theta_ind in range(0, count_of_theta):
                         if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
@@ -410,9 +430,9 @@ def find_amplitude_of_inertial_waves_from_arrays(number_of_files, u_array, v_arr
     theta_array = np.linspace(0.0, math.pi, num=count_of_theta)
     for omega in range(0, number_of_files // 2):
         A = np.zeros(count_of_theta)
-        for ind_z in range(0, cells_number_z_new // 2):
-            for ind_y in range(0, cells_number_y // 2):
-                for ind_x in range(0, cells_number_x // 2):
+        for ind_z in range(0, min_cells_number // 2):
+            for ind_y in range(0, min_cells_number // 2):
+                for ind_x in range(0, min_cells_number // 2):
                     mod_k, theta_k, phi = spherical_coord_from_vec(ind_x, ind_y, ind_z)
                     for theta_ind in range(0, count_of_theta):
                         if (abs(theta_array[theta_ind] - theta_k) < delta_theta / 2):
@@ -445,7 +465,7 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
     for i in np.arange(start_file_number, end_file_number+1, 1, dtype=int):
         x, y, z, p, u_center, v_center, w_center = get_data_from_file(i)
         fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec(u_center, v_center, w_center)
-        energy_sp = find_energy_spectrum(fourier_u, fourier_v, fourier_w, cells_number_z_new // 2, cells_number_y // 2, cells_number_x // 2, count_of_vec_steps, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
+        energy_sp = find_energy_spectrum(fourier_u, fourier_v, fourier_w, min_cells_number // 2, count_of_vec_steps, kz, ky, kx, amplitude_wave_vec, max_wave_deviation_in_energy_calc)
         q_max = (np.argmax(energy_sp)) * amplitude_wave_vec / count_of_vec_steps
         #full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
         full_e = find_full_energy(u_center, v_center, w_center)
