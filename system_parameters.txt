@@ -12,7 +12,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 389029.54763895116
 posteriori Reynolds number = 31.895292583576534
 posteriori Rossby number = 0.3474844611252465
-time moment: 19.700000000000003
+time moment: 19.7
 full kinetic energy = 1.12593042677028
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -26,7 +26,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 362050.0324345296
 posteriori Reynolds number = 32.013549087599
 posteriori Rossby number = 0.3487728110429382
-time moment: 19.900000000000002
+time moment: 19.9
 full kinetic energy = 1.0867497794721317
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -47,7 +47,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 385379.26531123597
 posteriori Reynolds number = 31.501150177579593
 posteriori Rossby number = 0.34319046190277264
-time moment: 20.200000000000003
+time moment: 20.2
 full kinetic energy = 1.1049131649117403
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -61,7 +61,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 354981.99831715005
 posteriori Reynolds number = 31.716471863649442
 posteriori Rossby number = 0.34553629208622383
-time moment: 20.400000000000002
+time moment: 20.4
 full kinetic energy = 1.0646046943868956
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -82,7 +82,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 374767.77803120983
 posteriori Reynolds number = 31.08249540912315
 posteriori Rossby number = 0.3386294118282701
-time moment: 20.700000000000003
+time moment: 20.7
 full kinetic energy = 1.0810974428328266
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -96,7 +96,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 349376.08306544897
 posteriori Reynolds number = 31.418190901807268
 posteriori Rossby number = 0.3422866589618982
-time moment: 20.900000000000002
+time moment: 20.9
 full kinetic energy = 1.0442264151878307
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -117,7 +117,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 367330.962237121
 posteriori Reynolds number = 30.712361910185383
 posteriori Rossby number = 0.33459697854408643
-time moment: 21.200000000000003
+time moment: 21.2
 full kinetic energy = 1.0586358627082129
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -131,7 +131,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 341934.7038333021
 posteriori Reynolds number = 31.13441809429979
 posteriori Rossby number = 0.33919508546902766
-time moment: 21.400000000000002
+time moment: 21.4
 full kinetic energy = 1.0299451096862506
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -152,7 +152,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 365782.9505438699
 posteriori Reynolds number = 30.771027879205548
 posteriori Rossby number = 0.3352361171435504
-time moment: 21.700000000000003
+time moment: 21.7
 full kinetic energy = 1.059623259151683
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -166,7 +166,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 341057.6753339061
 posteriori Reynolds number = 31.040013730336977
 posteriori Rossby number = 0.33816659358567114
-time moment: 21.900000000000002
+time moment: 21.9
 full kinetic energy = 1.0371006784862475
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -187,7 +187,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 371473.64785657794
 posteriori Reynolds number = 31.132406736171077
 posteriori Rossby number = 0.33917317265246855
-time moment: 22.200000000000003
+time moment: 22.2
 full kinetic energy = 1.0671781916050092
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -201,7 +201,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 346380.18605807814
 posteriori Reynolds number = 31.221561574937756
 posteriori Rossby number = 0.34014447338671855
-time moment: 22.400000000000002
+time moment: 22.4
 full kinetic energy = 1.0675005520707843
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -222,7 +222,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 385417.36629529967
 posteriori Reynolds number = 31.49505336157694
 posteriori Rossby number = 0.34312403991220114
-time moment: 22.700000000000003
+time moment: 22.7
 full kinetic energy = 1.0823237561313162
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -236,7 +236,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 357842.2782628374
 posteriori Reynolds number = 31.573407385480213
 posteriori Rossby number = 0.34397767076389124
-time moment: 22.900000000000002
+time moment: 22.9
 full kinetic energy = 1.1003151515281835
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -257,7 +257,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 395185.85330099205
 posteriori Reynolds number = 31.92084871779961
 posteriori Rossby number = 0.34776288338789485
-time moment: 23.200000000000003
+time moment: 23.2
 full kinetic energy = 1.114949885832921
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125
@@ -271,7 +271,7 @@ maximum spectrum of density of viscous dissipation rate = 4.667876926398125
 full velocity of viscous kinetic energy dissipation = 371511.47930080665
 posteriori Reynolds number = 32.02464479099275
 posteriori Rossby number = 0.34889369359965033
-time moment: 23.400000000000002
+time moment: 23.4
 full kinetic energy = 1.1331682708924307
 maximum spectrum of energy in wave vector = 4.667876926398125
 maximum spectrum of density of viscous dissipation rate = 4.667876926398125

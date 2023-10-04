@@ -33,7 +33,8 @@ max_wave_deviation_in_dencity_velocity_dissipation_calc = 0.5
 min_cells_number = min([cells_number_x, cells_number_y, cells_number_z])
 dx = (right_boundary_x - left_boundary_x) / min_cells_number
 dy = (up_boundary_y - down_boundary_y) / min_cells_number
-dz_new = (front_boundary_z - rear_boundary_z) / min_cells_number
+dz = (front_boundary_z - rear_boundary_z) / min_cells_number
+count_of_numbers_after_point = len(str(time_step)) - str(time_step).find('.') - 1
 
 # name of txt file, which save information about Reynolds and Rossby number, characteristic wave vector, energy and dissipation
 txt_file_name = "system_parameters.txt"
@@ -42,9 +43,7 @@ def construct_file_path(n):
     path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution\\numerical_solution_'
     #path = 'C:\\Users\\Admin\\Documents\\analysis_of_calculations_of_column_vortices\\data_numerical_solution2\\numerical_solution_'
     l = int(len(str(n)))
-    help_string = ''
-    for i in range(0, 6-l, 1):
-        help_string += '0'
+    help_string = '0' * (6-l)
     return path + help_string + str(n) + '.plt'
 
 # return: 
@@ -198,7 +197,7 @@ def get_data_from_file(file_number):
 # E(q) = summ(Vk^2) / (2*pi)^3, if |k - q| <= 1/4;
 # k = sqrt(kx*kx + ky*ky + kz*kz)
 # Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed; 
-# q - array of modulus of vectors 
+# q - array of modulus of vectors; can be more speedy with numba!
 def find_energy_spectrum(u, v, w, size_of_array, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
     spectrum = np.zeros(count_of_cells)
     for ind_z in range(0, size_of_array):
@@ -217,7 +216,7 @@ def find_energy_spectrum(u, v, w, size_of_array, count_of_cells, freq_z, freq_y,
 
 # find full kinetic energy in part of volume
 def find_full_energy(u, v, w):
-    E_without_koeff = np.sum(np.square(u) + np.square(v) + np.square(w)) * dx * dy * dz_new
+    E_without_koeff = np.sum(np.square(u) + np.square(v) + np.square(w)) * dx * dy * dz
     return E_without_koeff / (2.0 * (right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 # calculation of wave vectors arrays along coordinate axes
@@ -314,7 +313,7 @@ def find_energy_spectrum_from_file_with_add_return(file_number, count_of_vec_poi
 # find the spectral density of the velocity of viscous kinetic energy dissipation per unit volume
 # E(q) = summ(Vk^2 * k^2) / (2*pi)^3, if |k - q| <= 1/2;
 # k = sqrt(kx*kx + ky*ky + kz*kz)
-# Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed;
+# Vk^2 = (u^2 + v^2 + w^2); u, v, w - projections of spectum of speed; can be more speedy with numba!
 def spectral_density_of_velocity_of_dissipation(u, v, w, size_of_array, count_of_cells, freq_z, freq_y, freq_x, amplitude, max_wave_deviation_):
     spectrum = np.zeros(count_of_cells)
     for ind_z in range(0, size_of_array):
@@ -334,7 +333,7 @@ def spectral_density_of_velocity_of_dissipation(u, v, w, size_of_array, count_of
 def find_full_rate_of_dissipation(u, v, w):
     v_sqr_vector_array = np.square(u) + np.square(v) + np.square(w)
     E_without_koeff = np.sum(v_sqr_vector_array * k_sqr_vector_array)
-    return E_without_koeff * dx * dy * dz_new / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
+    return E_without_koeff * dx * dy * dz / ((right_boundary_x - left_boundary_x) * (up_boundary_y - down_boundary_y) * (front_boundary_z - rear_boundary_z))
 
 def find_rate_of_viscous_kinetic_energy_dissipation_from_file(file_number, count_of_vec_points, amplitude_wave_vec, kx, ky, kz, max_wave_deviation_):
     fourier_u, fourier_v, fourier_w = find_fourier_velocity_vec_from_file(file_number)
@@ -453,7 +452,7 @@ def find_amplitude_of_inertial_waves_from_arrays(number_of_files, u_array, v_arr
 
 # Function which find an energy spectrum and a rate of viscous kinetic energy dissipation and plot the graphs
 # then find amplitude of inertial waves. Returns array with amplitude of inertial waves in relation to frequency and angle
-def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_file_number, bool_will_save_spectrum, count_of_vec_steps, count_of_theta, delta_theta, bool_save_txt_info):
+def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_file_number, bool_save_spectrum, count_of_vec_steps, count_of_theta, delta_theta, bool_save_txt_info):
     if bool_save_txt_info == True:
         file = open(txt_file_name, "w+")
         file.close()
@@ -470,7 +469,7 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
         #full_e = find_full_energy(fourier_u, fourier_v, fourier_w)
         full_e = find_full_energy(u_center, v_center, w_center)
 
-        print("time moment: " + str(i * time_step))
+        print("time moment: " + str(round(i * time_step, count_of_numbers_after_point)))
         print("full kinetic energy = " + str(full_e))
         print("maximum spectrum of energy in wave vector = " + str(q_max))
 
@@ -484,12 +483,12 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
         print("posteriori Reynolds number = " + str(Re))
         print("posteriori Rossby number = " + str(Ro))
 
-        if bool_will_save_spectrum == True:
-            save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, i * time_step)
-            save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, i * time_step)
+        if bool_save_spectrum == True:
+            save_energy_spectrum(amplitude_wave_vec, max_wave_deviation_in_energy_calc, count_of_vec_steps, energy_sp, round(i * time_step, count_of_numbers_after_point))
+            save_spectral_density_of_the_dissipation_rate(amplitude_wave_vec, max_wave_deviation_in_dencity_velocity_dissipation_calc, count_of_vec_steps, dencity_velocity_sp, round(i * time_step, count_of_numbers_after_point))
         if bool_save_txt_info == True:
             file = open(txt_file_name, "a+")
-            file.write("time moment: " + str(i * time_step) + "\n")
+            file.write("time moment: " + str(round(i * time_step, count_of_numbers_after_point)) + "\n")
             file.write("full kinetic energy = " + str(full_e) + "\n")
             file.write("maximum spectrum of energy in wave vector = " + str(q_max) + "\n")
             file.write("maximum spectrum of density of viscous dissipation rate = " + str(maximum_nu) + "\n")
@@ -512,27 +511,19 @@ def find_spectrums_and_ampl_of_inertial_waves_from_file(start_file_number, end_f
 # function which draw and save picture with inertial waves
 A_w_theta_file_name = "Amplitude_(theta_frequency)_" + str(end_number - start_number + 1) + "_files.png"
 def save_amplitude_of_inertial_waves(amplitude, angle_ticks_array, frequency_ticks_array, file_name):
-    fig, ax = plt.subplots()
-    fig.suptitle("Amplitude(frequency, angle)", fontsize=20)
-    ax.imshow(amplitude)
+    len_x = len(angle_ticks_array)
+    len_y = len(frequency_ticks_array)
+    max_len = max(len_x, len_y)
+    len_x_ticks = 10    # count of ticks along axis
+    len_y_ticks = 10
+    fig, ax = plt.subplots(figsize=(20 * len_x / max_len, 20 * len_y / max_len))    # max size of picture = 20 * 20; all pixels are square
+    fig.suptitle("Amplitude(frequency, angle)", fontsize=15)
+    plt.xticks(np.linspace(0, len_x, num=len_x_ticks), labels=np.round(np.linspace(np.min(angle_ticks_array), np.max(angle_ticks_array), num=len_x_ticks), decimals=1))
+    plt.yticks(np.linspace(0, len_y, num=len_y_ticks), labels=np.round(np.linspace(np.min(frequency_ticks_array), np.max(frequency_ticks_array), num=len_y_ticks), decimals=1))
     ax.set_xlabel("angle (theta), rad")
     ax.set_ylabel("frequency")
-    ax.set_xticks(np.arange(len(angle_ticks_array)), labels=np.round(angle_ticks_array, decimals=1))
-    ax.set_yticks(np.arange(len(frequency_ticks_array)), labels=np.round(frequency_ticks_array, decimals=1))
-    plt.xticks(rotation=45)
+    ax.imshow(amplitude)
     plt.savefig(file_name)
-
-"""
-fig, ax = plt.subplots()
-ax.set_title("maximum of A(frequency, angle)")
-ax.plot(np.arange(len(maximum_of_A)), maximum_of_A)
-ax.set_xlabel("frequency")
-ax.set_ylabel("Amplitude")
-#ax.set_yticks(np.arange(count_of_theta), labels=theta_array)
-ax.set_xticks(np.arange(len(freq_)), labels=np.round(freq_, decimals=1))
-ax.grid(True, linestyle='--')
-plt.xticks(rotation=45)
-plt.show()"""
 
 delta_theta = 0.15          # some choosen constant
 count_of_theta = 70         # count of points which divided full angle range
