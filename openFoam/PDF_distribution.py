@@ -3,7 +3,7 @@ import math
 import matplotlib.pyplot as plt
 from gc import collect
 
-path = "/home/sq-wm/OpenFOAM/sq-wm-v2306/run/calc11/"
+path = "/home/sq-wm/OpenFOAM/sq-wm-v2306/run/calc12/"
 # read size of new structured array
 with open(path + 'grid_size.txt', 'r') as fp:
     count_of_cells_axis = fp.read().split('\n')
@@ -149,7 +149,7 @@ def get_mean_vorticity_from_file(full_path_to_files, size_x, size_y, size_z):
 
     del slice
     collect()
-    print("end reading velocity from file " + full_path_to_files)
+    print("end reading mean vorticity from file " + full_path_to_files)
     vort = np.array(vort, dtype=float)
     return vort
 
@@ -214,60 +214,141 @@ def find_scalar_distribution(scalar_field, z_cells, y_cells, x_cells, left_bound
     distribution[steps_count - 1] = 0.0
     return distribution / (z_cells * y_cells * x_cells)
 
+def find_rang_distribution(scalar_field, z_cells, y_cells, x_cells, left_bound, right_bound, steps_count):
+    distribution_plus = find_scalar_distribution(scalar_field, z_cells, y_cells, x_cells, 0.0, right_bound, steps_count)
+    distribution_minus = find_scalar_distribution(scalar_field, z_cells, y_cells, x_cells, left_bound, 0.0, steps_count)
+    distribution_plus = np.sort(distribution_plus, kind='mergesort')
+    distribution_minus = np.sort(distribution_minus, kind='mergesort')
+    return distribution_plus, distribution_minus
+
+def find_rang_in_array(scalar_field):
+    arr_sorted = np.sort(scalar_field, kind='mergesort', axis=None)
+    arr_minus = arr_sorted[0 : len(arr_sorted) // 2]
+    for i in range(len(arr_minus)-1, 0, -1):
+        if arr_minus[i] > 0.0:
+            arr_minus[i] = 0.0
+        elif arr_minus[i] < 0.0:
+            i = 0
+    arr_minus = np.abs(np.flip(arr_minus))
+    arr_plus = arr_sorted[len(arr_sorted) // 2 : len(arr_sorted)]
+    for i in range(len(arr_plus)):
+        if arr_plus[i] < 0.0:
+            arr_plus[i] = 0.0
+        elif arr_plus[i] > 0.0:
+            i = len(arr_plus)
+
+    del arr_sorted
+    collect()
+    return arr_minus, arr_plus
+
 dx = (right_boundary_x - left_boundary_x) / x_cells
 dy = (up_boundary_y - down_boundary_y) / y_cells
 dz = (front_boundary_z - rear_boundary_z) / z_cells
 
-count_of_vort_steps = 500
+count_of_vort_steps = 250
 left_boundary_vort = -150.0
 right_boundary_vort = 150.0
-vort_distribution_from_time = []
-vort_z_mean = np.zeros((z_cells, y_cells, x_cells))
+#vort_distribution_from_time = []
+vort_distribution_from_time_plus = []
+vort_distribution_from_time_minus = []
+vort_plus_time = []
+vort_minus_time = []
+needed_count = int(z_cells * y_cells * x_cells // 2)
+#vort_z_mean = np.zeros((z_cells, y_cells, x_cells))
 #d_vort = (right_boundary_vort - left_boundary_vort) / (count_of_vort_steps - 1)
-vort_scale = np.linspace(left_boundary_vort, right_boundary_vort, count_of_vort_steps) / (2.0 * OMEGA)
+#vort_scale = np.linspace(left_boundary_vort, right_boundary_vort, count_of_vort_steps) / (2.0 * OMEGA)
+#vort_line = np.zeros(z_cells * y_cells * x_cells)
 
 for time in time_array:
     if time % 1 == 0:
         time = int(time)
     print('time = ' + str(time))
     #u_center, v_center, w_center = get_data_from_file(path + str(time) + '/', x_cells, y_cells, z_cells)
-    vort_z = get_vorticity_z_from_file(path + str(time) + '/', x_cells, y_cells, z_cells)
-    vort_z_mean += vort_z
+    #vort_z = get_vorticity_z_from_file(path + str(time) + '/', x_cells, y_cells, z_cells)
+    #vort_z_mean += vort_z
     
-    #vort_z = get_vorticity_z_from_file(path + '18/', x_cells, y_cells, z_cells)
+    vort_z = get_vorticity_z_from_file(path + str(time) + '/', x_cells, y_cells, z_cells)
     #vort_z = get_mean_vorticity_from_file(path, x_cells, y_cells, z_cells)
-    vort_distribution = find_scalar_distribution(vort_z, z_cells, y_cells, x_cells, left_boundary_vort, right_boundary_vort, count_of_vort_steps)
-    vort_distribution_from_time.append(vort_distribution)
+    distr_plus, distr_minus = find_rang_distribution(vort_z, z_cells, y_cells, x_cells, left_boundary_vort, right_boundary_vort, count_of_vort_steps)
+    vort_distribution_from_time_plus.append(distr_plus)
+    vort_distribution_from_time_minus.append(distr_minus)
+    vort_minus, vort_plus = find_rang_in_array(vort_z)
+    vort_minus_time.append(vort_minus)
+    vort_plus_time.append(vort_plus)
 
+    del distr_plus
+    del distr_minus
     del vort_z
+    del vort_minus
+    del vort_plus
     collect()
 
-vort_z_mean /= len(time_array)
-write_3d_field(vort_z_mean, x_cells, y_cells, z_cells, path + 'vort_z_mean.txt')
-vort_distribution_from_time = np.array(vort_distribution_from_time)
+#vort_z_mean /= len(time_array)
+#write_3d_field(vort_z_mean, x_cells, y_cells, z_cells, path + 'vort_z_mean.txt')
+#vort_distribution_from_time = np.array(vort_distribution_from_time)
+vort_distribution_from_time_plus = np.array(vort_distribution_from_time_plus)
+vort_distribution_from_time_minus = np.array(vort_distribution_from_time_minus)
+vort_plus_time = np.array(vort_plus_time)
+vort_minus_time = np.array(vort_minus_time)
+vort_plus_time = np.mean(vort_plus_time, axis=0)
+vort_minus_time = np.mean(vort_minus_time, axis=0)
 
-vort_z_mean = get_mean_vorticity_from_file(path, x_cells, y_cells, z_cells)
-vort_mean_distribution = find_scalar_distribution(vort_z_mean, z_cells, y_cells, x_cells, left_boundary_vort, right_boundary_vort, count_of_vort_steps)
+#vort_z_mean = get_mean_vorticity_from_file(path, x_cells, y_cells, z_cells)
+#vort_mean_distribution = find_scalar_distribution(vort_z_mean, z_cells, y_cells, x_cells, left_boundary_vort, right_boundary_vort, count_of_vort_steps)
 
-fig, axs = plt.subplots()
+#fig, axs = plt.subplots()
 #axs.set_title("mean z vorticity")
 #plt.imshow(vort_slice, cmap='seismic')
-for i in range(len(time_array)):
-    plt.plot(vort_scale, vort_distribution_from_time[i])
+#for i in range(len(time_array)):
+#    plt.plot(vort_scale, vort_distribution_from_time[i], label=str(time_array[i]))
 #axs[0].set_title('vorticity')
 #axs[1].plot(vort_scale, np.gradient(vort_distribution))
 #axs[1].set_title('derivative(vorticity)')
 #plt.imshow(mod_vel_slice, cmap='seismic')
-plt.grid(True, linestyle='--')
+#plt.grid(True, linestyle='--')
+#plt.legend(loc='upper right')
+#plt.show()
+
+#vort_distribution_mean = np.mean(vort_distribution_from_time, axis=0)
+#fig, axs = plt.subplots(1, 2)
+#axs[0].set_title('meaning after calculate')
+#axs[0].plot(vort_scale, vort_distribution_mean)
+#axs[0].grid(True, linestyle='--')
+#axs[1].set_title('calculating after mean')
+#axs[1].plot(vort_scale, vort_mean_distribution)
+#axs[1].grid(True, linestyle='--')
+#plt.show()
+
+vort_distribution_plus_mean = np.mean(vort_distribution_from_time_plus, axis=0)
+vort_distribution_minus_mean = np.mean(vort_distribution_from_time_minus, axis=0)
+fig, axs = plt.subplots()
+axs.plot(np.arange(count_of_vort_steps), vort_distribution_minus_mean, color='blue', label='vort < 0', linewidth=3)
+axs.plot(np.arange(count_of_vort_steps), vort_distribution_plus_mean, color='red', label='vort > 0', linewidth=3)
+axs.grid(True, linestyle='--')
+axs.set_xlabel('rang')
+axs.set_ylabel('frequency')
+plt.legend()
 plt.show()
 
-vort_distribution_mean = np.mean(vort_distribution_from_time, axis=0)
-
-fig, axs = plt.subplots(1, 2)
-axs[0].set_title('meaning after calculate')
-axs[0].plot(vort_scale, vort_distribution_mean)
-axs[0].grid(True, linestyle='--')
-axs[1].set_title('calculating after mean')
-axs[1].plot(vort_scale, vort_mean_distribution)
-axs[1].grid(True, linestyle='--')
+fig, axs = plt.subplots()
+axs.plot(np.arange(needed_count), vort_minus_time, color='blue', label='vort < 0', linewidth=3)
+axs.plot(np.arange(needed_count), vort_plus_time, color='red', label='vort > 0', linewidth=3)
+axs.grid(True, linestyle='--')
+axs.set_xlabel('rang')
+axs.set_ylabel('|vort|')
+plt.legend()
 plt.show()
+
+#fig, axs = plt.subplots(1, 2)
+#axs[0].plot(np.arange(count_of_vort_steps), np.sort(vort_distribution_mean))
+#axs[0].grid(True, linestyle='--')
+#axs[1].plot(np.arange(count_of_vort_steps), np.sort(vort_mean_distribution))
+#axs[1].grid(True, linestyle='--')
+#plt.show()
+
+#fig, axs = plt.subplots(1, 2)
+#axs[0].plot(np.arange(z_cells * y_cells * x_cells), np.sort(vort_distribution_mean))
+#axs[0].grid(True, linestyle='--')
+#axs[1].plot(np.arange(count_of_vort_steps), np.sort(vort_mean_distribution))
+#axs[1].grid(True, linestyle='--')
+#plt.show()
