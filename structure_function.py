@@ -118,7 +118,7 @@ def convert_time_name(x):
     else:
         return x
 
-start_time, end_time, time_step = 10, 20, 0.5
+start_time, end_time, time_step = 7, 20, 0.5
 
 time = np.round(np.arange(start_time, end_time + time_step, time_step), decimals=2)
 time = list(map(convert_time_name, time))
@@ -209,20 +209,21 @@ u_time = []
 v_time = []
 w_time = []
 
-max_space_dev = 2
+max_space_dev = 5
 max_tau = len(time)//2
 min_x, max_x = x_cells//2 - max_space_dev, x_cells//2 + max_space_dev
 min_y, max_y = y_cells//2 - max_space_dev, y_cells//2 + max_space_dev
 min_z, max_z = z_cells//2 - max_space_dev, z_cells//2 + max_space_dev
-cells_count = (max_x - min_x) * (max_y - min_y) * (max_z - min_z)
-
-position = x_cells//2, y_cells//2, z_cells//2
 
 for i in range(len(time)):
     u, v, w = get_data_from_file(path + str(time[i]) + '/', x_cells, y_cells, z_cells)
-    u_time.append(u[position])
-    v_time.append(v[position])
-    w_time.append(w[position])
+    # u_time.append(u[position])
+    # v_time.append(v[position])
+    # w_time.append(w[position])
+
+    u_time.append(u[min_z:max_z, min_y:max_y, min_x:max_x])
+    v_time.append(v[min_z:max_z, min_y:max_y, min_x:max_x])
+    w_time.append(w[min_z:max_z, min_y:max_y, min_x:max_x])
 
 # structure_function = np.zeros(max_tau - 1)
 # for cell in range(cells_count):
@@ -256,19 +257,22 @@ structure_function_v = []
 structure_function_w = []
 
 for tau in range(1, len(time)//2):
-    D_u = 0.0
-    D_v = 0.0
-    D_w = 0.0
+    D_u = np.zeros((max_z - min_z, max_y - min_y, max_x - min_x))
+    D_v = np.zeros((max_z - min_z, max_y - min_y, max_x - min_x))
+    D_w = np.zeros((max_z - min_z, max_y - min_y, max_x - min_x))
     for t in range(0, len(time) - tau):
-        D_u += (u_time[t+tau] - u_time[t])**2
-        D_v += (v_time[t+tau] - v_time[t])**2
-        D_w += (w_time[t+tau] - w_time[t])**2
+        D_u += np.power(np.array(u_time[t+tau] - u_time[t]), 2.0)
+        D_v += np.power(np.array(v_time[t+tau] - v_time[t]), 2.0)
+        D_w += np.power(np.array(w_time[t+tau] - w_time[t]), 2.0)
 
     structure_function_u.append(D_u / (len(time) - tau))
     structure_function_v.append(D_v / (len(time) - tau))
     structure_function_w.append(D_w / (len(time) - tau))
 
 structure_function = np.array(np.array(structure_function_u) + np.array(structure_function_v) + np.array(structure_function_w), dtype=float)
+structure_function_mean = np.mean(np.mean(np.mean(structure_function, axis=1), axis=1), axis=1)
+
+print(structure_function.shape, structure_function_mean.shape)
 
 def power_function(x, A, g):
     return A * np.power(x, g)
@@ -278,11 +282,11 @@ def spectrum(omega, A, g):
     return (A * math.sin(0.5 * math.pi * g) * gamma(g + 1.0)) * np.power(omega, -g - 1.0) / math.pi
 
 
-params, _ = curve_fit(power_function, np.arange(1, len(time)//2)*time_step, structure_function)
+params, _ = curve_fit(power_function, np.arange(1, len(time)//2)*time_step, structure_function_mean)
 print(params)
 
 fig, axs = plt.subplots(figsize=(10, 10))
-axs.plot(np.arange(1, len(time)//2)*time_step, structure_function, linewidth=3, label= r'$ D (\tau) $')
+axs.plot(np.arange(1, len(time)//2)*time_step, structure_function_mean, linewidth=3, label= r'$ D (\tau) $')
 axs.plot(np.linspace(time_step, len(time)//2*time_step, 100, endpoint=True), power_function(np.linspace(time_step, len(time)//2*time_step, 100, endpoint=True), *params), linewidth=3, label=str(round(params[0], 2)) + r'$ \, \tau $' + f"^ {params[1]:.2f}")
 
 axs.grid(True, linestyle='--')
@@ -293,13 +297,13 @@ axs.tick_params(labelsize=size_of_numbers)
 fig.tight_layout()
 plt.show()
 
-# fig, axs = plt.subplots(figsize=(10, 10))
-# axs.plot(np.linspace(0.1, 100, 500, endpoint=True), spectrum(np.linspace(0.1, 100, 500, endpoint=True), *params), linewidth=3, label=r'$ C / \, \omega $' + f"^ {params[1]:.2f}")
+fig, axs = plt.subplots(figsize=(10, 10))
+axs.plot(np.linspace(0.1, 100, 500, endpoint=True), spectrum(np.linspace(0.1, 100, 500, endpoint=True), *params), linewidth=3, label=r'$ C / \, \omega $' + f"^ {params[1]:.2f}")
 
-# axs.grid(True, linestyle='--')
-# axs.set_xlabel(r'$ \omega $', fontsize=size_of_text)
-# axs.set_ylabel(r'$ E (\omega) $ ', fontsize=size_of_text)
-# axs.legend(fontsize=size_of_legend)
-# axs.tick_params(labelsize=size_of_numbers)
-# fig.tight_layout()
-# plt.show()
+axs.grid(True, linestyle='--')
+axs.set_xlabel(r'$ \omega $', fontsize=size_of_text)
+axs.set_ylabel(r'$ E (\omega) $ ', fontsize=size_of_text)
+axs.legend(fontsize=size_of_legend)
+axs.tick_params(labelsize=size_of_numbers)
+fig.tight_layout()
+plt.show()
